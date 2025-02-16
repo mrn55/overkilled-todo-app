@@ -24,8 +24,12 @@ Yes, I could've gone with a basic **Monolith**… but **NO**! I said, _"We shall
 ### **🚀 Getting Started**
 To run this **masterpiece of engineering** (or madness):  
 1. **Clone the repo**  
+   Powershell:
+   ```ps
+   git clone https://github.com/mrn55/overkilled-todo-app.git; cd overkilled-todo-app
+   ```
    ```sh
-   git clone https://github.com/your-repo/overkill-todo.git && cd overkill-todo
+   git clone https://github.com/mrn55/overkilled-todo-app.git && cd overkilled-todo-app
    ```
 2. **Make sure you have Docker & Docker Compose** installed.  
 3. **Run the whole thing with one command**  
