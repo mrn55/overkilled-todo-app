@@ -34,7 +34,7 @@ To run this **masterpiece of engineering** (or madness):
 2. **Make sure you have Docker & Docker Compose** installed.  
 3. **Run the whole thing with one command**  
    ```sh
-   mv .env-example .env
+   cp .env-example .env
    docker-compose up --build -d
    ```
 4. **Access the magic:**  
