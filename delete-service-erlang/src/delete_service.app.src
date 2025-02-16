@@ -1,0 +1,9 @@
+{application, delete_service,
+ [
+  {description, "Delete Service"},
+  {vsn, "0.1.0"},
+  {modules, [delete_service]},
+  {registered, [delete_service]},
+  {applications, [kernel, stdlib, cowboy, ranch, mysql]},
+  {mod, {delete_service, []}}
+ ]}.
