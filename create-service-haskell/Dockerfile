@@ -1,25 +1,26 @@
-FROM haskell:9.4
+FROM haskell:9.4 AS build
 
 WORKDIR /app
 
 RUN cabal update
 
-# Add just the .cabal file to capture dependencies
-# COPY ./create-service-haskell.cabal create-service-haskell.cabal
-
 COPY . .
 
-# Docker will cache this command as a layer, freeing us up to
-# modify source code without re-installing dependencies
-# (unless the .cabal file changes!)
-# RUN cabal build --only-dependencies -j4
 RUN cabal install --only-dependencies
 
-# Add and Install Application Code
 RUN cabal build
-# RUN cabal install
 
-EXPOSE 3000
+FROM debian:bookworm-slim
 
-# Run the application
-CMD ["cabal", "run"]
+# https://packages.debian.org/search?mode=path&suite=sid&section=all&arch=any&searchon=contents&keywords=libmariadb.so.3
+# https://packages.debian.org/search?searchon=contents&keywords=libpcre.so.3&mode=path&suite=unstable&arch=any
+RUN apt-get update && apt-get install -y \
+    libmariadb3 \
+    libpcre3 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY --from=build /app/dist-newstyle/build/x86_64-linux/ghc-*/create-service-haskell-*/x/create-service-haskell/build/create-service-haskell .
+
+CMD ["./create-service-haskell"]
