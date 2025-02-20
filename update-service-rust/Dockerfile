@@ -1,13 +1,8 @@
-FROM rust:latest
-
+FROM rust:latest AS builder
 WORKDIR /app
-
-COPY Cargo.toml Cargo.lock ./
-
 COPY . .
+RUN cargo install --path .
 
-RUN cargo fetch
-
-RUN cargo build --release
-
-CMD ["./target/release/update-service-rust"]
+FROM debian:bookworm-slim
+COPY --from=builder /usr/local/cargo/bin/update-service-rust /usr/local/bin/update-service-rust
+CMD ["update-service-rust"]

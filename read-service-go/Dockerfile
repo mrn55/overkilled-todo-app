@@ -1,4 +1,4 @@
-FROM golang:latest
+FROM golang:latest AS build
 
 WORKDIR /app
 
@@ -7,6 +7,13 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o read-service-go
+# RUN go build -o read-service-go
+RUN CGO_ENABLED=0 GOOS=linux go build -o read-service-go .
 
-CMD ["./read-service-go"]
+FROM alpine:3.21
+
+WORKDIR /app
+
+COPY --from=build /app/read-service-go .
+
+ENTRYPOINT ["/app/read-service-go"]
