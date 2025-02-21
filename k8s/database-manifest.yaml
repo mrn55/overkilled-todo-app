@@ -1,0 +1,128 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db-secret
+type: Opaque
+data:
+  MYSQL_ROOT_PASSWORD: c3VwZXJzZWN1cmVwYXNzd29yZCE=
+  MYSQL_USER: dG9kb191c2Vy
+  MYSQL_PASSWORD: dG9kb19wYXNzd29yZA==
+  MYSQL_DATABASE: dG9kb19kYg==
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mariadb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mariadb
+  template:
+    metadata:
+      labels:
+        app: mariadb
+    spec:
+      initContainers:
+        - name: copy-init-sql
+          image: busybox
+          command: [ "sh", "-c", "[ -f /config/init.sql ] && cp /config/init.sql /docker-entrypoint-initdb.d/ || echo 'No init.sql found'" ]
+          volumeMounts:
+            - name: init-sql
+              mountPath: /config
+            - name: mysql-init
+              mountPath: /docker-entrypoint-initdb.d
+      containers:
+        - name: mariadb
+          image: mariadb:latest
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: MYSQL_USER
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: MYSQL_PASSWORD
+            - name: MYSQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: MYSQL_DATABASE
+          volumeMounts:
+            - name: mysql-storage
+              mountPath: /var/lib/mysql
+            - name: mysql-init
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: mysql-storage
+          persistentVolumeClaim:
+            claimName: mysql-pvc
+        - name: init-sql
+          configMap:
+            name: mariadb-init-sql
+        - name: mysql-init
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb
+spec:
+  selector:
+    app: mariadb
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mariadb-init-sql
+data:
+  init.sql: |
+    SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+    START TRANSACTION;
+    SET time_zone = "+00:00";
+
+    CREATE DATABASE IF NOT EXISTS `todo_db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+    USE `todo_db`;
+
+    CREATE TABLE `todos` (
+      `id` int(11) NOT NULL,
+      `title` varchar(255) NOT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+    INSERT INTO `todos` (`id`, `title`) VALUES
+    (1, 'Clone repo!'),
+    (2, 'Run docker compose up'),
+    (3, 'Profit');
+
+    ALTER TABLE `todos`
+      ADD PRIMARY KEY (`id`);
+
+    ALTER TABLE `todos`
+      MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+    COMMIT;

@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+        - name: api-gateway
+          image: nginx:latest
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/nginx/conf.d
+      volumes:
+        - name: config-volume
+          configMap:
+            name: api-gateway-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-gateway-config
+data:
+  default.conf: |
+    server {
+        listen 80;
+
+        add_header 'Access-Control-Allow-Origin' 'http://localhost:3000' always;   # Allow requests from Vite server
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS' always;
+        add_header 'Access-Control-Allow-Headers' 'Content-Type, Authorization' always;
+        add_header 'Access-Control-Allow-Credentials' 'true' always;
+        add_header 'Access-Control-Max-Age' '86400' always;   # Cache preflight response for 24 hours
+
+        # Handle OPTIONS requests for preflight checks
+        if ($request_method = 'OPTIONS') {
+            return 204;
+        }
+
+        location /todo {
+            if ($request_method = POST) {
+                proxy_pass http://create-service:5001;
+            }
+
+            if ($request_method = GET) {
+                proxy_pass http://read-service:5002;
+            }
+
+            if ($request_method = PUT) {
+                proxy_pass http://update-service:5003;
+            }
+
+            if ($request_method = DELETE) {
+                proxy_pass http://delete-service:5004;
+            }
+        }
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+spec:
+  selector:
+    app: api-gateway
+  ports:
+    - protocol: TCP
+      port: 80
