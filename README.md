@@ -116,7 +116,10 @@ Enjoy! 🎩
 ### 📚 Engineering Upgrade Docs
 For the execution-focused roadmap and contributor/agent guidance, see:
 - `docs/upgrade-phases.md`
+- `docs/phase-0-execution.md`
 - `docs/architecture.md`
 - `docs/slo.md`
+- `docs/reports/phase0-baseline-template.md`
 - `docs/agent-execution-playbook.md`
 - `docs/runbooks/game-day.md`
+- `scripts/phase0_baseline.py`

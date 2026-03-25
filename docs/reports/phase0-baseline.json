@@ -1,0 +1,46 @@
+{
+  "captured_at_utc": "2026-03-25T14:18:09.969757+00:00",
+  "base_url": "http://localhost",
+  "target": "http://localhost/todo",
+  "probes": {
+    "GET /todo": {
+      "requests": 5,
+      "successes": 0,
+      "failures": 5,
+      "availability": 0.0,
+      "latency_ms": {
+        "min": 0.414,
+        "avg": 2.194,
+        "p95": 8.809,
+        "p99": 8.809,
+        "max": 8.809
+      },
+      "failure_samples": [
+        {
+          "status": null,
+          "error": "<urlopen error [Errno 111] Connection refused>"
+        },
+        {
+          "status": null,
+          "error": "<urlopen error [Errno 111] Connection refused>"
+        },
+        {
+          "status": null,
+          "error": "<urlopen error [Errno 111] Connection refused>"
+        },
+        {
+          "status": null,
+          "error": "<urlopen error [Errno 111] Connection refused>"
+        },
+        {
+          "status": null,
+          "error": "<urlopen error [Errno 111] Connection refused>"
+        }
+      ]
+    }
+  },
+  "notes": [
+    "POST/PUT/DELETE baseline is intentionally excluded in Phase 0 to avoid mutating state during smoke runs.",
+    "Add write-path probes in a controlled fixture environment before Phase 3."
+  ]
+}

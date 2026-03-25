@@ -23,13 +23,21 @@ If a task does not improve one of the above, defer it.
 ## Phase 0 — Baseline + Guardrails (1–2 days)
 
 ### Deliverables
-- `docs/architecture.md`: current topology + request flows
-- `docs/slo.md`: first SLOs and measurements
-- Baseline latency/error measurements for CRUD endpoints
+- `docs/architecture.md`: current topology + request flows + invariants
+- `docs/slo.md`: first SLO policy and error-budget posture
+- `scripts/phase0_baseline.py`: reproducible latency/availability probe
+- `docs/reports/phase0-baseline-template.md`: report format for comparable snapshots
+- `docs/phase-0-execution.md`: execution checklist and status
+
+### Execution Command
+```sh
+python3 scripts/phase0_baseline.py --base-url http://localhost --requests 30 --output docs/reports/phase0-baseline.json
+```
 
 ### Exit Criteria
 - A new contributor can explain request flow end-to-end in under 2 minutes.
 - SLOs are measurable with existing telemetry or local scripts.
+- A baseline report exists and is reproducible from one command.
 
 ---
 

@@ -7,6 +7,7 @@ This playbook helps human contributors and coding agents execute upgrades consis
 2. Keep pull requests small and reversible.
 3. Add/adjust observability whenever behavior changes.
 4. Prefer contract-first changes for any API modification.
+5. Before starting Phase 1+, ensure Phase 0 checklist is complete in `docs/phase-0-execution.md`.
 
 ## PR Checklist
 - [ ] Scope linked to one phase (`docs/upgrade-phases.md`)
