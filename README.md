@@ -110,3 +110,13 @@ This project is a **tech demo,** a **joke,** and a **completely unnecessary use 
 > **Built with way too much effort for a simple TODO app.**  
 
 Enjoy! 🎩
+
+---
+
+### 📚 Engineering Upgrade Docs
+For the execution-focused roadmap and contributor/agent guidance, see:
+- `docs/upgrade-phases.md`
+- `docs/architecture.md`
+- `docs/slo.md`
+- `docs/agent-execution-playbook.md`
+- `docs/runbooks/game-day.md`
