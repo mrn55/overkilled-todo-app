@@ -1,23 +1,28 @@
-# Stand app up in MiniKube
+# Minikube local Kubernetes runbook
 
-## (Prerequisite) Start Minikube
-For me this was fairly simple, I'm using docker as the driver, I'm on windows, using powershell most the time.
-```ps
-minikube start
-```
-Enable ingress addon:
-```ps
+This runbook is for local validation while Milestone 1 moves the repo toward a production-shaped Kubernetes foundation. The current manifests are still flat files under `k8s/`; the next step is to promote them into `k8s/base` and `k8s/overlays/local` with Kustomize.
+
+## Prerequisites
+
+- Docker Engine.
+- Minikube.
+- `kubectl` configured for the Minikube context.
+- Docker Compose if you want to build images with the same names used by local manifests.
+
+## Start the cluster
+
+```sh
+minikube start --driver=docker
 minikube addons enable ingress
+kubectl cluster-info
 ```
 
-## Get K8s Manifest
-One option is to try convert `docker-compose.yml` file using `kompose convert`
-See https://kubernetes.io/docs/tasks/configure-pod-container/translate-compose-kubernetes/
-It produces a ton of files based on your docker-compose.yaml, more ideally you create a manifest file for each service you want to deploy.
+## Build and load local images
 
-## Add images to minikube
-While we are using docker, minikube wont be able to see the images directly, so using the commands below we can ensure the manifest will deploy.
-```ps
+Build the local service images, then load them into Minikube:
+
+```sh
+docker compose build create-service read-service update-service delete-service todo-frontend
 minikube image load overkilled-todo-app-create-service:latest
 minikube image load overkilled-todo-app-read-service:latest
 minikube image load overkilled-todo-app-update-service:latest
@@ -25,8 +30,9 @@ minikube image load overkilled-todo-app-delete-service:latest
 minikube image load overkilled-todo-app-todo-frontend:latest
 ```
 
-## Start deploying the manifests
-```ps
+## Apply the current manifests
+
+```sh
 kubectl apply -f k8s/database-manifest.yaml
 kubectl apply -f k8s/create-service-manifest.yaml
 kubectl apply -f k8s/read-service-manifest.yaml
@@ -37,31 +43,48 @@ kubectl apply -f k8s/api-gateway-manifest.yaml
 kubectl apply -f k8s/ingress-manifest.yaml
 ```
 
-## Metrics!
-https://grafana.com/blog/2023/01/19/how-to-monitor-kubernetes-clusters-with-the-prometheus-operator/
-```ps
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/main/bundle.yaml --force-conflicts=true --server-side=true
-kubectl apply -f .\k8s\prometheus_rbac.yaml
-kubectl apply -f .\k8s\prometheus_instance.yaml
-kubectl apply -f .\k8s\service_monitor.yaml
-kubectl create deployment grafana --image=docker.io/grafana/grafana:latest 
-kubectl apply -f .\k8s\expose_prometheus.yaml
-kubectl expose deployment grafana --port 3000
-kubectl port-forward svc/grafana 3000:3000
-```
-Follow the article linked just above to add Prometheus as a data source to Grafana.
+## Verify rollout
 
-## You can get in a container
-Lets say you have a pod named `mariadb-686667c7dc-djc4d`.
-```
-kubectl exec --stdin --tty mariadb-686667c7dc-djc4d -- /bin/bash
-```
-Would get you in, using your credentials sored in the config map (base64 encoded in my deployment) you can log into MariaDB.
-```
-mysql -uroot -p
+```sh
+kubectl get pods,svc,ingress
+kubectl rollout status deployment/create-service
+kubectl rollout status deployment/read-service
+kubectl rollout status deployment/update-service
+kubectl rollout status deployment/delete-service
+kubectl rollout status deployment/todo-frontend
+kubectl rollout status deployment/api-gateway
 ```
 
-## Delete EVERYTHING
-```ps
+If ingress host mapping is not configured locally, use port-forwarding:
+
+```sh
+kubectl port-forward svc/todo-frontend 3000:80
+kubectl port-forward svc/api-gateway 8081:80
+```
+
+Then open <http://localhost:3000> for the frontend and <http://localhost:8081/todo> for the API gateway.
+
+## Troubleshooting
+
+```sh
+kubectl describe pod <pod-name>
+kubectl logs deployment/api-gateway
+kubectl logs deployment/read-service
+kubectl exec -it deployment/mariadb -- mysql -uroot -p
+```
+
+Database credentials are local-development values today. Milestone 4 will replace committed Kubernetes secrets with an enterprise secret-management path.
+
+## Clean up
+
+```sh
+kubectl delete -f k8s/ingress-manifest.yaml --ignore-not-found
+kubectl delete -f k8s/api-gateway-manifest.yaml --ignore-not-found
+kubectl delete -f k8s/front-end-manifest.yaml --ignore-not-found
+kubectl delete -f k8s/delete-service-manifest.yaml --ignore-not-found
+kubectl delete -f k8s/update-service-manifest.yaml --ignore-not-found
+kubectl delete -f k8s/read-service-manifest.yaml --ignore-not-found
+kubectl delete -f k8s/create-service-manifest.yaml --ignore-not-found
+kubectl delete -f k8s/database-manifest.yaml --ignore-not-found
 minikube delete
 ```
