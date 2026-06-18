@@ -1,2 +1,44 @@
+# Local environment and secrets
 .env
+.env.*
+!.env.example
+*.local
+
+# Local Kubernetes artifacts
+kubeconfig*
+*.kubeconfig
+.kube/
 kompose/
+
+# Generated reports and scan output
+reports/
+coverage/
+coverage.*
+*.sarif
+*.spdx.json
+*.cyclonedx.json
+trivy-results.*
+
+# Screenshots and recordings
+screenshots/
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.mp4
+
+# Tool caches
+.cache/
+.pytest_cache/
+.terraform/
+terraform.tfstate*
+node_modules/
+target/
+dist-newstyle/
+_build/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

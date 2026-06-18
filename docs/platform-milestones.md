@@ -20,22 +20,22 @@ Make the repository credible before adding cloud complexity: deterministic local
 
 #### Documentation and repo hygiene
 
-- [ ] Rewrite `README.md` as a portfolio landing page with architecture, quickstarts, platform roadmap, and demo script links.
-- [ ] Update `MINIKUBE.md` into a reliable local Kubernetes runbook.
-- [ ] Add `.env.example` and align README setup instructions with it.
-- [ ] Add or update `.gitignore` for `.env`, local kubeconfig files, generated reports, screenshots, and tool caches.
-- [ ] Add `docs/architecture.md` describing service topology, request flow, and platform components.
-- [ ] Add `docs/demo-script.md` with a short recruiter/interviewer walkthrough.
-- [ ] Add `docs/decisions/0001-keep-business-app-simple.md` explaining why platform depth is the project focus.
+- [x] Rewrite `README.md` as a portfolio landing page with architecture, quickstarts, platform roadmap, and demo script links.
+- [x] Update `MINIKUBE.md` into a reliable local Kubernetes runbook.
+- [x] Add `.env.example` and align README setup instructions with it.
+- [x] Add or update `.gitignore` for `.env`, local kubeconfig files, generated reports, screenshots, and tool caches.
+- [x] Add `docs/architecture.md` describing service topology, request flow, and platform components.
+- [x] Add `docs/demo-script.md` with a short recruiter/interviewer walkthrough.
+- [x] Add `docs/decisions/0001-keep-business-app-simple.md` explaining why platform depth is the project focus.
 
 #### Local runtime and gateway polish
 
-- [ ] Add Docker Compose profiles for default app runtime, development-only phpMyAdmin, and optional direct backend port exposure.
-- [ ] Add Docker Compose healthchecks for MariaDB, frontend, gateway, and backend services.
-- [ ] Pin Docker Compose runtime images instead of using floating `latest` tags.
-- [ ] Add Docker networks so only intended services are reachable from the host.
-- [ ] Replace unsafe NGINX method-routing patterns in `api-gateway.conf` with production-shaped routing.
-- [ ] Add `/healthz` to the gateway and frontend NGINX config.
+- [x] Add Docker Compose profiles for default app runtime, development-only phpMyAdmin, and optional direct backend port exposure.
+- [x] Add Docker Compose healthchecks for MariaDB, frontend, gateway, and backend services.
+- [x] Pin Docker Compose runtime images instead of using floating `latest` tags.
+- [x] Add Docker networks so only intended services are reachable from the host.
+- [x] Replace unsafe NGINX method-routing patterns in `api-gateway.conf` with production-shaped routing.
+- [x] Add `/healthz` to the gateway and frontend NGINX config.
 - [ ] Make frontend API base URL runtime-configurable instead of hardcoding `http://localhost/todo`.
 
 #### Container hardening

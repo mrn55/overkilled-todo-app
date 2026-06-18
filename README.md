@@ -1,112 +1,84 @@
-### **The Overkill(ed) Todo App**
-#### _Because a simple CRUD app just wasn't complicated enough, I've made a very simple CRUD app!_
+# Overkill(ed) Todo App
 
-Welcome to the **Overkill(ed) Todo App**, where we've taken the simplest concept—managing a list of tasks—and turned it into a **polyglot microservices nightmare**. 🎉  
+A deliberately simple TODO CRUD application wrapped in production-shaped platform engineering practices. The business domain is intentionally small; the portfolio signal comes from repeatable local development, hardened containers, Kubernetes/Kustomize foundations, CI validation, observability, security, and Azure/AKS GitOps evolution.
 
-This is the summation of a three day project that I wanted to put together. ChatGPTy did prove to be helpful pulling a lot of this together, but it falls pretty short when the Haskell and Erlang came up. I nearly gave up a couple times, just on what little code I had to write. Watching each piece come together and start working felt real good. I had a couple times I wanted to give up when working with Haskell or Erlang. The others I've either worked in or built at least something in during my past.
+## Why this project exists
 
-### **📜 The Tech Stack (a.k.a. "Why?")**
-Yes, I could've gone with a basic **Monolith**… but **NO**! I said, _"We shall use multiple languages, just because we can."_  
+Most portfolio CRUD apps make the product more complex. This repository does the opposite: it keeps TODO behavior boring so platform work is easy to review, demo, and operate. The application is polyglot on purpose so CI, containers, and Kubernetes validation have to handle realistic heterogeneity.
 
-| Service        | Language / Framework | Purpose |
-|---------------|----------------------|---------|
-| `create-service` | **Haskell (Scotty)** | Adds todos to the database |
-| `read-service`   | **Go (Gin Gonic)** | Retrieves todos (because REST exists) |
-| `update-service` | **Rust (Axum)** | Updates todos (fast and memory safe!) |
-| `delete-service` | **Erlang (Cowboy)** | Deletes todos (because BEAM is cool) |
-| `api-gateway`    | **NGINX** | Routes requests to the right service |
-| `todo-frontend`  | **Vite + React + TypeScript** | The UI (because vanilla JS would be too easy) |
-| `db`            | **MariaDB** | The poor, abused database |
-| `phpmyadmin`    | **PHPMyAdmin** | Because we like graphical DB tools |
+## Service topology
 
----
+| Component | Stack | Responsibility |
+| --- | --- | --- |
+| `todo-frontend` | Vite, React, TypeScript, NGINX | Browser UI for listing and changing todos. |
+| `api-gateway` | NGINX | Single HTTP entry point that routes CRUD methods to backend services. |
+| `create-service` | Haskell, Scotty | Creates todos in MariaDB. |
+| `read-service` | Go, Gin | Reads todos from MariaDB. |
+| `update-service` | Rust, Axum | Updates todos in MariaDB. |
+| `delete-service` | Erlang, Cowboy | Deletes todos from MariaDB. |
+| `db` | MariaDB | Local relational datastore. |
+| `phpmyadmin` | phpMyAdmin | Optional local-only database inspection tool. |
 
-### **🚀 Getting Started**
-To run this **masterpiece of engineering** (or madness):  
-1. **Clone the repo**  
-   Powershell:
-   ```ps
-   git clone https://github.com/mrn55/overkilled-todo-app.git; cd overkilled-todo-app
-   ```
-   ```sh
-   git clone https://github.com/mrn55/overkilled-todo-app.git && cd overkilled-todo-app
-   ```
-2. **Make sure you have Docker & Docker Compose** installed.  
-3. **Run the whole thing with one command**  
-   ```sh
-   cp .env-example .env
-   docker-compose up --build -d
-   ```
-4. **Access the magic:**  
-   - **Frontend:** [`http://localhost`](http://localhost)  
-   - **API Gateway:** [`http://localhost/todo`](http://localhost/todo) (_/api/v1 with a version would be a better choice here I sus_)
-   - **Database UI:** [`http://localhost:8080`](http://localhost:8080) (_if you must peek at the DB_)  
+See [`docs/architecture.md`](docs/architecture.md) for request flow and platform components.
 
----
+## Quickstart: Docker Compose
 
-### **🛠️ Environment Variables (Handled by Docker)**
-Instead of hardcoding things like some kind of barbarian (tbf I did, but at the behest of a friend), we're using **Docker Compose** and a `.env` file:  
-```ini
-DATABASE_HOST=db
-DATABASE_USER=todo_user
-DATABASE_PASSWORD=supersecurepassword!
-DATABASE_NAME=todo_db
-DATABASE_PORT=3306
-```
-Docker injects these into all services automatically, so you don’t have to.
+Prerequisites:
 
----
+- Docker Engine with Docker Compose v2.
+- Ports `80` and `3000` available for the gateway and frontend.
 
-### **📂 Project Structure**
-```bash
-.
-├── create-service-haskell/   # Adds todos (functional & elegant) (gpt put elegant, i did not)
-├── read-service-go/          # Fetches todos (efficient & boring) (gpt put boring, i did not)
-├── update-service-rust/      # Updates todos (blazingly fast™)
-├── delete-service-erlang/    # Deletes todos (because BEAM)
-├── todo-frontend/            # Vite + React + TypeScript frontend
-├── api-gateway.conf          # NGINX routes requests like a traffic cop
-├── docker-compose.yml        # Ties the madness together
-├── .env                      # Centralized environment variables
-└── README.md                 # This wonderful guide
-```
-
----
-
-### **🛑 Troubleshooting**
-#### **1. Something isn't working?**
-Here you have a couple options:
-Check logs:
 ```sh
-docker-compose logs -f <service-name>
+git clone https://github.com/mrn55/overkilled-todo-app.git
+cd overkilled-todo-app
+cp .env.example .env
+docker compose up --build -d
 ```
 
-Try:  
+Open:
+
+- Frontend: <http://localhost:3000>
+- API gateway: <http://localhost/todo>
+
+Optional local tools:
+
 ```sh
-docker-compose down && docker-compose up --build -d
-```
-And hope for the best.  
+# Add phpMyAdmin on http://localhost:8080
+docker compose --profile tools up --build -d
 
-Delete this repo:
+# Expose backend service ports directly for debugging
+docker compose --profile backend-ports up --build -d
+```
+
+Useful checks:
+
 ```sh
-cd .. && rm overkilled-todo-app/
+docker compose ps
+docker compose logs -f api-gateway
+docker compose down --remove-orphans
 ```
-And same here, hope for the best.
 
-#### **2. Frontend not showing?**
-Make sure `todo-frontend` is either:  
-- Served via `api-gateway` (via NGINX config), but you would need to update the api-gateway.conf to accommodate that.
-- Running on a separate port (e.g., `http://localhost:3000`) Warning here: check api-gateway.conf for the `Access-Control-Allow-Origin` port.
+## Quickstart: local Kubernetes
 
-#### **3. Database not connecting?**
-- Check `phpmyadmin` at [`http://localhost:8080`](http://localhost:8080).  
-- Your `.env` should match the MySQL/MariaDB service.  
+Use [`MINIKUBE.md`](MINIKUBE.md) for the current local Kubernetes runbook. Milestone 1 is moving flat manifests toward `k8s/base` and `k8s/overlays/local` so the same app shape can later promote to AKS.
 
----
+## Platform roadmap
 
-### **🎯 Final Thoughts**
-This project is a **tech demo,** a **joke,** and a **completely unnecessary use of microservices**—all in one. But if you **actually** need to scale your TODO list to enterprise levels, well… you've got a head start. 🚀  I think some future enhancements would be minikube deployment, some helm charts, testing, tracing, and authentication. But for now, I'll quit dodging the honey-do list and show my face to the family for a bit.
+The project roadmap lives in [`docs/platform-milestones.md`](docs/platform-milestones.md):
 
-> **Built with way too much effort for a simple TODO app.**  
+1. **Foundation polish**: deterministic local runtime, container hardening, Kubernetes validation, CI quality gates.
+2. **AKS and GitOps**: Terraform-managed Azure infrastructure, ACR image release, Flux reconciliation.
+3. **Observability**: metrics, dashboards, alerts, SLOs, runbooks, and load demos.
+4. **Enterprise security and policy polish**: secret management, workload identity, network policy, admission policy, and supply-chain controls.
 
-Enjoy! 🎩
+## Demo scripts
+
+- [`docs/demo-script.md`](docs/demo-script.md): short recruiter/interviewer walkthrough.
+- [`MINIKUBE.md`](MINIKUBE.md): local cluster runbook.
+
+## Development guardrails
+
+- Do not make TODO CRUD behavior more complex unless explicitly requested.
+- Prefer platform changes that are reviewable in small pull requests.
+- Keep local-only conveniences out of production-shaped overlays.
+- Document acceptance criteria and demo moments for platform work.
