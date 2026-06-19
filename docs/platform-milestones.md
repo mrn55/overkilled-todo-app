@@ -36,7 +36,7 @@ Make the repository credible before adding cloud complexity: deterministic local
 - [x] Add Docker networks so only intended services are reachable from the host.
 - [x] Replace unsafe NGINX method-routing patterns in `api-gateway.conf` with production-shaped routing.
 - [x] Add `/healthz` to the gateway and frontend NGINX config.
-- [ ] Make frontend API base URL runtime-configurable instead of hardcoding `http://localhost/todo`.
+- [x] Make frontend API base URL runtime-configurable instead of hardcoding `http://localhost/todo`.
 
 #### Container hardening
 

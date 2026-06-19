@@ -62,7 +62,7 @@ kubectl port-forward svc/todo-frontend 3000:80
 kubectl port-forward svc/api-gateway 8081:80
 ```
 
-Then open <http://localhost:3000> for the frontend and <http://localhost:8081/todo> for the API gateway.
+Then open <http://localhost:3000> for the frontend and <http://localhost:8081/todo> for the API gateway. The frontend defaults to the port-forwarded gateway URL when it is served from `localhost:3000`, which avoids browser calls to the un-forwarded `http://localhost/todo` endpoint.
 
 ## Troubleshooting
 

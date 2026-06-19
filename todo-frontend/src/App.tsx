@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { todoApi } from './api';
 import TodoList from './components/TodoList';
 import TodoForm from './components/TodoForm';
 import { Todo } from './types'; // Import the Todo type
@@ -9,14 +9,14 @@ const App = () => {
 
   // Fetch todos from the API on load
   useEffect(() => {
-    axios.get<Todo[]>('http://localhost/todo')
+    todoApi.get<Todo[]>('')
       .then(response => setTodos(response.data))
       .catch(error => console.error(error));
   }, []);
 
   // Function to handle adding a new todo
   const addTodo = (newTodo: Omit<Todo, 'id'>) => {
-    axios.post('http://localhost/todo', newTodo)
+    todoApi.post('', newTodo)
       .then(response => setTodos([...todos, response.data]))
       .catch(error => console.error(error));
   };
