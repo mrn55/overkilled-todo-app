@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Todo } from "../types"; // Import Todo type
-import axios from "axios";
+import { todoApi } from "../api";
 
 interface TodoItemProps {
   todo: Todo;
@@ -15,7 +15,7 @@ const TodoItem: React.FC<TodoItemProps> = ({ todo, onUpdate, onDelete }) => {
   // Handle Update (PUT request)
   const updateTodo = async () => {
     try {
-      const response = await axios.put(`http://localhost/todo/${todo.id}`, {
+      const response = await todoApi.put(`/${todo.id}`, {
         title: newTitle,
       });
       onUpdate(response.data); // Update state in parent
@@ -28,7 +28,7 @@ const TodoItem: React.FC<TodoItemProps> = ({ todo, onUpdate, onDelete }) => {
   // Handle Delete
   const deleteTodo = async () => {
     try {
-      await axios.delete(`http://localhost/todo/${todo.id}`);
+      await todoApi.delete(`/${todo.id}`);
       onDelete(todo.id); // Remove from UI
     } catch (error) {
       console.error("Error deleting todo:", error);
