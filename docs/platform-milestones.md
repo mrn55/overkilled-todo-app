@@ -49,8 +49,8 @@ Make the repository credible before adding cloud complexity: deterministic local
 
 #### Kubernetes foundation
 
-- [ ] Reorganize flat `k8s/*.yaml` manifests into `k8s/base` and `k8s/overlays/local`.
-- [ ] Add Kustomize `kustomization.yaml` files for base and local overlays.
+- [x] Reorganize flat `k8s/*.yaml` manifests into `k8s/base` and `k8s/overlays/local`.
+- [x] Add Kustomize `kustomization.yaml` files for base and local overlays.
 - [ ] Add a dedicated namespace manifest.
 - [ ] Add labels and annotations consistently across workloads and services.
 - [ ] Add resource requests and limits to every workload.

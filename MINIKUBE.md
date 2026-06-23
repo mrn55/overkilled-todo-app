@@ -1,6 +1,6 @@
 # Minikube local Kubernetes runbook
 
-This runbook is for local validation while Milestone 1 moves the repo toward a production-shaped Kubernetes foundation. The current manifests are still flat files under `k8s/`; the next step is to promote them into `k8s/base` and `k8s/overlays/local` with Kustomize.
+This runbook is for local validation while Milestone 1 moves the repo toward a production-shaped Kubernetes foundation. The local environment now renders from the Kustomize overlay at `k8s/overlays/local`, which keeps Minikube-specific image names and `imagePullPolicy: Never` outside the reusable base.
 
 ## Prerequisites
 
@@ -30,17 +30,18 @@ minikube image load overkilled-todo-app-delete-service:latest
 minikube image load overkilled-todo-app-todo-frontend:latest
 ```
 
-## Apply the current manifests
+## Preview and apply the local overlay
+
+Render the overlay first when you want to inspect the exact resources that will be applied:
 
 ```sh
-kubectl apply -f k8s/database-manifest.yaml
-kubectl apply -f k8s/create-service-manifest.yaml
-kubectl apply -f k8s/read-service-manifest.yaml
-kubectl apply -f k8s/update-service-manifest.yaml
-kubectl apply -f k8s/delete-service-manifest.yaml
-kubectl apply -f k8s/front-end-manifest.yaml
-kubectl apply -f k8s/api-gateway-manifest.yaml
-kubectl apply -f k8s/ingress-manifest.yaml
+kustomize build k8s/overlays/local
+```
+
+Apply the local overlay to Minikube:
+
+```sh
+kubectl apply -k k8s/overlays/local
 ```
 
 ## Verify rollout
@@ -51,14 +52,14 @@ kubectl rollout status deployment/create-service
 kubectl rollout status deployment/read-service
 kubectl rollout status deployment/update-service
 kubectl rollout status deployment/delete-service
-kubectl rollout status deployment/todo-frontend
+kubectl rollout status deployment/front-end
 kubectl rollout status deployment/api-gateway
 ```
 
 If ingress host mapping is not configured locally, use port-forwarding:
 
 ```sh
-kubectl port-forward svc/todo-frontend 3000:80
+kubectl port-forward svc/front-end 3000:80
 kubectl port-forward svc/api-gateway 8081:80
 ```
 
@@ -78,13 +79,6 @@ Database credentials are local-development values today. Milestone 4 will replac
 ## Clean up
 
 ```sh
-kubectl delete -f k8s/ingress-manifest.yaml --ignore-not-found
-kubectl delete -f k8s/api-gateway-manifest.yaml --ignore-not-found
-kubectl delete -f k8s/front-end-manifest.yaml --ignore-not-found
-kubectl delete -f k8s/delete-service-manifest.yaml --ignore-not-found
-kubectl delete -f k8s/update-service-manifest.yaml --ignore-not-found
-kubectl delete -f k8s/read-service-manifest.yaml --ignore-not-found
-kubectl delete -f k8s/create-service-manifest.yaml --ignore-not-found
-kubectl delete -f k8s/database-manifest.yaml --ignore-not-found
+kubectl delete -k k8s/overlays/local --ignore-not-found
 minikube delete
 ```
