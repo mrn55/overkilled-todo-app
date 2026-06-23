@@ -11,5 +11,5 @@ dist/
 build/
 tmp/
 .cache/
-_build/
-rebar3.crashdump
+target/
+Cargo.lock.bak
