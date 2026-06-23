@@ -1,0 +1,92 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+  - phpmyadmin-manifest.yaml
+images:
+  - name: create-service
+    newName: overkilled-todo-app-create-service
+    newTag: latest
+  - name: delete-service
+    newName: overkilled-todo-app-delete-service
+    newTag: latest
+  - name: read-service
+    newName: overkilled-todo-app-read-service
+    newTag: latest
+  - name: todo-frontend
+    newName: overkilled-todo-app-todo-frontend
+    newTag: latest
+  - name: update-service
+    newName: overkilled-todo-app-update-service
+    newTag: latest
+patches:
+  - target:
+      kind: Deployment
+      name: create-service
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: create-service
+      spec:
+        template:
+          spec:
+            containers:
+              - name: create-service
+                imagePullPolicy: Never
+  - target:
+      kind: Deployment
+      name: delete-service
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: delete-service
+      spec:
+        template:
+          spec:
+            containers:
+              - name: delete-service
+                imagePullPolicy: Never
+  - target:
+      kind: Deployment
+      name: front-end
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: front-end
+      spec:
+        template:
+          spec:
+            containers:
+              - name: front-end
+                imagePullPolicy: Never
+  - target:
+      kind: Deployment
+      name: read-service
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: read-service
+      spec:
+        template:
+          spec:
+            containers:
+              - name: read-service
+                imagePullPolicy: Never
+  - target:
+      kind: Deployment
+      name: update-service
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: update-service
+      spec:
+        template:
+          spec:
+            containers:
+              - name: update-service
+                imagePullPolicy: Never

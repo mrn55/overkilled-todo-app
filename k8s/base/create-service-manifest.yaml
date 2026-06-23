@@ -14,8 +14,7 @@ spec:
     spec:
       containers:
         - name: create-service
-          image: overkilled-todo-app-create-service:latest
-          imagePullPolicy: Never
+          image: create-service:latest
           ports:
             - containerPort: 5001
           env:

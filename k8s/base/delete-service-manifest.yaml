@@ -1,23 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: read-service
+  name: delete-service
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: read-service
+      app: delete-service
   template:
     metadata:
       labels:
-        app: read-service
+        app: delete-service
     spec:
       containers:
-        - name: read-service
-          image: overkilled-todo-app-read-service:latest
-          imagePullPolicy: Never
+        - name: delete-service
+          image: delete-service:latest
           ports:
-            - containerPort: 5002
+            - containerPort: 5004
           env:
             - name: DATABASE_HOST
               value: mariadb
@@ -42,11 +41,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: read-service
+  name: delete-service
 spec:
   selector:
-    app: read-service
+    app: delete-service
   ports:
     - protocol: TCP
-      port: 5002
-      targetPort: 5002
+      port: 5004
+      targetPort: 5004
