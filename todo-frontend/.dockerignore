@@ -11,5 +11,7 @@ dist/
 build/
 tmp/
 .cache/
-_build/
-rebar3.crashdump
+node_modules/
+dist/
+.vite/
+npm-debug.log*
