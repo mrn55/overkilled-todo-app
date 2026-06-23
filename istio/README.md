@@ -7,7 +7,7 @@ I have a folder at my root level with tools in it already in my `$PATH` so I dro
 ## 2. Install Istio onto cluster
 ```ps
 # if the other ingress (nginx) is still live
-kubectl delete -f k8s/ingress-manifest.yaml
+kubectl delete ingress todo-ingress --ignore-not-found
 
 istioctl install --set profile=demo -y
 
