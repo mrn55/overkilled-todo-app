@@ -135,14 +135,14 @@ services:
       context: ./todo-frontend
       dockerfile: Dockerfile
     ports:
-      - "3000:80"
+      - "3000:8080"
     depends_on:
       api-gateway:
         condition: service_healthy
     networks:
       - frontend
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/healthz"]
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8080/healthz"]
       interval: 10s
       timeout: 5s
       retries: 6

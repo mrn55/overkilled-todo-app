@@ -40,12 +40,12 @@ Make the repository credible before adding cloud complexity: deterministic local
 
 #### Container hardening
 
-- [ ] Pin base image versions in all service Dockerfiles.
-- [ ] Add OCI image labels to all application images.
-- [ ] Add non-root runtime users where feasible.
-- [ ] Add `.dockerignore` files for each build context.
-- [ ] Change frontend build from `npm install` to `npm ci`.
-- [ ] Replace the Erlang production container command with a production-oriented release/start command.
+- [x] Pin base image versions in all service Dockerfiles.
+- [x] Add OCI image labels to all application images.
+- [x] Add non-root runtime users where feasible.
+- [x] Add `.dockerignore` files for each build context.
+- [x] Change frontend build from `npm install` to `npm ci`.
+- [x] Replace the Erlang production container command with a production-oriented release/start command.
 
 #### Kubernetes foundation
 
