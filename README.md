@@ -58,6 +58,8 @@ docker compose logs -f api-gateway
 docker compose down --remove-orphans
 ```
 
+The frontend resolves the API base URL from `window.__TODO_CONFIG__.apiBaseUrl`, `VITE_API_BASE_URL`, or local-development defaults. When served on `localhost:3000` by Minikube port-forwarding, it falls back to `http://localhost:8081/todo`.
+
 ## Quickstart: local Kubernetes
 
 Use [`MINIKUBE.md`](MINIKUBE.md) for the current local Kubernetes runbook. Milestone 1 is moving flat manifests toward `k8s/base` and `k8s/overlays/local` so the same app shape can later promote to AKS.
