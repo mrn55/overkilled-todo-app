@@ -2,6 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: delete-service
+  labels:
+    app.kubernetes.io/name: delete-service
+    app.kubernetes.io/part-of: overkilled-todo
+    app.kubernetes.io/component: crud-service
+    app.kubernetes.io/managed-by: kustomize
 spec:
   replicas: 2
   selector:
@@ -11,6 +16,10 @@ spec:
     metadata:
       labels:
         app: delete-service
+        app.kubernetes.io/name: delete-service
+        app.kubernetes.io/part-of: overkilled-todo
+        app.kubernetes.io/component: crud-service
+        app.kubernetes.io/managed-by: kustomize
     spec:
       containers:
         - name: delete-service
@@ -42,6 +51,11 @@ apiVersion: v1
 kind: Service
 metadata:
   name: delete-service
+  labels:
+    app.kubernetes.io/name: delete-service
+    app.kubernetes.io/part-of: overkilled-todo
+    app.kubernetes.io/component: crud-service
+    app.kubernetes.io/managed-by: kustomize
 spec:
   selector:
     app: delete-service

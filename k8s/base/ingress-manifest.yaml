@@ -2,6 +2,13 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: todo-ingress
+  labels:
+    app.kubernetes.io/name: todo-ingress
+    app.kubernetes.io/part-of: overkilled-todo
+    app.kubernetes.io/component: gateway
+    app.kubernetes.io/managed-by: kustomize
+  annotations:
+    app.kubernetes.io/description: Routes local TODO UI and API traffic to the frontend and gateway services.
 spec:
   rules:
     - host: localhost
