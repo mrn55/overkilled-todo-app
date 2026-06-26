@@ -1,6 +1,6 @@
 # Minikube local Kubernetes runbook
 
-This runbook is for local validation while Milestone 1 moves the repo toward a production-shaped Kubernetes foundation. The local environment now renders from the Kustomize overlay at `k8s/overlays/local`, which keeps Minikube-specific image names and `imagePullPolicy: Never` outside the reusable base.
+This runbook is for local validation while Milestone 1 moves the repo toward a production-shaped Kubernetes foundation. The local environment now renders from the Kustomize overlay at `k8s/overlays/local`, which keeps Minikube-specific image names and `imagePullPolicy: Never` outside the reusable base. Application resources are deployed into the dedicated `todo-app` namespace, which is declared in `k8s/base/namespace.yaml` and applied consistently by Kustomize.
 
 ## Prerequisites
 

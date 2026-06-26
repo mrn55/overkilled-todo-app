@@ -2,6 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: todo-app
 resources:
+  - ../../base/namespace.yaml
   - expose_prometheus.yaml
   - prometheus_instance.yaml
   - prometheus_rbac.yaml
