@@ -1,5 +1,8 @@
 # Overkill(ed) Todo App
 
+[![Kubernetes Validation](https://github.com/mrn55/overkilled-todo-app/actions/workflows/k8s-validate.yaml/badge.svg)](https://github.com/mrn55/overkilled-todo-app/actions/workflows/k8s-validate.yaml)
+[![Container Build and Scan](https://github.com/mrn55/overkilled-todo-app/actions/workflows/container-build.yaml/badge.svg)](https://github.com/mrn55/overkilled-todo-app/actions/workflows/container-build.yaml)
+
 A deliberately simple TODO CRUD application wrapped in production-shaped platform engineering practices. The business domain is intentionally small; the portfolio signal comes from repeatable local development, hardened containers, Kubernetes/Kustomize foundations, CI validation, observability, security, and Azure/AKS GitOps evolution.
 
 ## Why this project exists
@@ -62,7 +65,7 @@ The frontend resolves the API base URL from `window.__TODO_CONFIG__.apiBaseUrl`,
 
 ## Quickstart: local Kubernetes
 
-Use [`MINIKUBE.md`](MINIKUBE.md) for the current local Kubernetes runbook. Milestone 1 is moving flat manifests toward `k8s/base` and `k8s/overlays/local` so the same app shape can later promote to AKS.
+Use [`MINIKUBE.md`](MINIKUBE.md) for the current local Kubernetes runbook. The local environment renders from `k8s/base` and `k8s/overlays/local` so the same app shape can later promote to AKS.
 
 ## Platform roadmap
 
