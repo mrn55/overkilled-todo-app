@@ -41,4 +41,4 @@ Open phpMyAdmin at <http://localhost:8080> only as a local development aid.
 
 ## Next recommended step
 
-Open a pull request that shows the Milestone 1 infrastructure gates: container builds, Dockerfile linting, Trivy scanning, and rendered Kubernetes validation.
+Open a pull request that shows the Milestone 1 infrastructure gates: container builds, Dockerfile linting, and rendered Kubernetes validation.
