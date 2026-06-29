@@ -6,9 +6,8 @@ RUN cabal update
 
 COPY . .
 
-RUN cabal install --only-dependencies
-
-RUN cabal build
+RUN cabal install --only-dependencies \
+    && cabal build
 
 FROM debian:12.8-slim
 

@@ -62,20 +62,20 @@ Make the repository credible before adding cloud complexity: deterministic local
 
 - [x] Add `.github/workflows/k8s-validate.yaml` for `kustomize build` and Kubernetes schema validation.
 - [x] Add `.github/workflows/container-build.yaml` for image builds and Dockerfile linting.
-- [x] Add Trivy filesystem scanning for dependency and secret findings.
+- [x] Defer repository vulnerability and secret scanning until a maintained scanner action is selected.
 - [x] Add a status badge section to the README after workflows exist.
 
 ### Acceptance criteria
 
 - [x] A reviewer can run the app locally from documented instructions.
-- [x] CI validates Dockerfiles, container builds, filesystem scans, and Kubernetes manifests.
+- [x] CI validates Dockerfiles, container builds, and Kubernetes manifests.
 - [x] Kustomize renders the local environment successfully.
 - [x] Every workload has resources, probes, labels, and a baseline security context.
 - [x] README clearly states that the app is intentionally simple and the platform is the focus.
 
 ### Demo moment
 
-Show a clean pull request where CI builds the service images, validates Kubernetes, scans the repo, and renders a local Kustomize deployment for the same simple TODO app.
+Show a clean pull request where CI builds the service images, validates Dockerfiles and Kubernetes, and renders a local Kustomize deployment for the same simple TODO app.
 
 ### Complexity traps to avoid
 
