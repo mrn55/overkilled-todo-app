@@ -1,0 +1,45 @@
+name: Container Build
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  dockerfiles:
+    name: Dockerfile lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          recursive: true
+          ignore: DL3008
+
+  build:
+    name: Build images
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: create-service
+            context: create-service-haskell
+          - image: read-service
+            context: read-service-go
+          - image: update-service
+            context: update-service-rust
+          - image: delete-service
+            context: delete-service-erlang
+          - image: todo-frontend
+            context: todo-frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build --pull --tag overkilled-todo-app-${{ matrix.image }}:ci ${{ matrix.context }}

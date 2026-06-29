@@ -1,6 +1,8 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: todo-app
+commonAnnotations:
+  platform.overkilled.dev/milestone: foundation-polish
 resources:
   - namespace.yaml
   - api-gateway-manifest.yaml

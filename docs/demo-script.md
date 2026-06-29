@@ -41,4 +41,4 @@ Open phpMyAdmin at <http://localhost:8080> only as a local development aid.
 
 ## Next recommended step
 
-Continue Milestone 1 by reorganizing `k8s/` into `k8s/base` and `k8s/overlays/local`, then add Kustomize validation in CI.
+Open a pull request that shows the Milestone 1 infrastructure gates: container builds, Dockerfile linting, and rendered Kubernetes validation.
