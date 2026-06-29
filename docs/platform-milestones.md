@@ -94,11 +94,11 @@ Provision Azure infrastructure and deploy the application through GitOps so the 
 
 #### Infrastructure as code
 
-- [ ] Add `infra/terraform/versions.tf`, `providers.tf`, `variables.tf`, `outputs.tf`, and `README.md`.
-- [ ] Add Terraform for resource group, virtual network, AKS, ACR, Log Analytics, Key Vault, and managed identities.
-- [ ] Add `infra/terraform/environments/dev.tfvars` and `prod.tfvars.example`.
-- [ ] Add Terraform validation and plan workflow.
-- [ ] Document manual approval expectations for Terraform apply.
+- [x] Add `infra/terraform/versions.tf`, `providers.tf`, `variables.tf`, `outputs.tf`, and `README.md`.
+- [x] Add Terraform for resource group, virtual network, AKS, ACR, Log Analytics, Key Vault, and managed identities.
+- [x] Add `infra/terraform/environments/dev.tfvars` and `prod.tfvars.example`.
+- [x] Add Terraform validation and plan workflow.
+- [x] Document manual approval expectations for Terraform apply.
 
 #### Azure container registry and image release
 
@@ -110,19 +110,19 @@ Provision Azure infrastructure and deploy the application through GitOps so the 
 
 #### GitOps structure
 
-- [ ] Add `clusters/aks-dev` as the Flux bootstrap target.
-- [ ] Add `gitops/apps/todo` to point Flux at the app overlay.
-- [ ] Add `gitops/infrastructure` for ingress-nginx, cert-manager, external-secrets, policy, and monitoring placeholders.
-- [ ] Add reconciliation documentation and common Flux commands.
-- [ ] Keep local and AKS deployment paths separate.
+- [x] Add `clusters/aks-dev` as the Flux bootstrap target.
+- [x] Add `gitops/apps/todo` to point Flux at the app overlay.
+- [x] Add `gitops/infrastructure` for ingress-nginx, cert-manager, external-secrets, policy, and monitoring placeholders.
+- [x] Add reconciliation documentation and common Flux commands.
+- [x] Keep local and AKS deployment paths separate.
 
 #### AKS overlays
 
-- [ ] Add `k8s/overlays/aks-dev` with AKS-specific ingress, images, resources, and replica settings.
-- [ ] Add `k8s/overlays/aks-prod` as a realistic production-shaped example without requiring immediate deployment.
-- [ ] Replace local hostnames with overlay-specific hostnames.
-- [ ] Add HorizontalPodAutoscaler resources where service behavior supports it.
-- [ ] Decide whether MariaDB remains in-cluster for demo cost control and document the managed Azure database upgrade path.
+- [x] Add `k8s/overlays/aks-dev` with AKS-specific ingress, images, resources, and replica settings.
+- [x] Add `k8s/overlays/aks-prod` as a realistic production-shaped example without requiring immediate deployment.
+- [x] Replace local hostnames with overlay-specific hostnames.
+- [x] Add HorizontalPodAutoscaler resources where service behavior supports it.
+- [x] Decide whether MariaDB remains in-cluster for demo cost control and document the managed Azure database upgrade path.
 
 ### Acceptance criteria
 
