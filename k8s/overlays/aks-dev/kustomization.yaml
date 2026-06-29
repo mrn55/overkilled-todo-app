@@ -1,0 +1,43 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: todo-app
+commonAnnotations:
+  platform.overkilled.dev/milestone: aks-gitops
+  platform.overkilled.dev/environment: aks-dev
+resources:
+  - ../../base
+  - hpa.yaml
+images:
+  - name: create-service
+    newName: oktododevacr.azurecr.io/overkilled-todo-app-create-service
+    newTag: dev-placeholder
+  - name: delete-service
+    newName: oktododevacr.azurecr.io/overkilled-todo-app-delete-service
+    newTag: dev-placeholder
+  - name: read-service
+    newName: oktododevacr.azurecr.io/overkilled-todo-app-read-service
+    newTag: dev-placeholder
+  - name: todo-frontend
+    newName: oktododevacr.azurecr.io/overkilled-todo-app-todo-frontend
+    newTag: dev-placeholder
+  - name: update-service
+    newName: oktododevacr.azurecr.io/overkilled-todo-app-update-service
+    newTag: dev-placeholder
+replicas:
+  - name: api-gateway
+    count: 2
+  - name: create-service
+    count: 2
+  - name: delete-service
+    count: 2
+  - name: front-end
+    count: 2
+  - name: read-service
+    count: 2
+  - name: update-service
+    count: 2
+patches:
+  - target:
+      kind: Ingress
+      name: todo-ingress
+    path: patches/ingress.yaml

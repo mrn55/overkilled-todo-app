@@ -1,0 +1,17 @@
+environment            = "prod"
+location               = "eastus"
+name_prefix            = "oktodo"
+owner                  = "portfolio"
+aks_node_count         = 3
+aks_node_vm_size       = "Standard_D2s_v5"
+log_retention_days     = 90
+vnet_address_space     = ["10.52.0.0/16"]
+aks_subnet_prefixes    = ["10.52.1.0/23"]
+admin_group_object_ids = [
+  "00000000-0000-0000-0000-000000000000"
+]
+
+tags = {
+  "cost-center" = "portfolio"
+  criticality    = "demo-production"
+}
