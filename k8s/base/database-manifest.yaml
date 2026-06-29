@@ -54,10 +54,25 @@ spec:
         app.kubernetes.io/component: database
         app.kubernetes.io/managed-by: kustomize
     spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       initContainers:
         - name: copy-init-sql
-          image: busybox
+          image: busybox:1.36.1
           command: [ "sh", "-c", "[ -f /config/init.sql ] && cp /config/init.sql /docker-entrypoint-initdb.d/ || echo 'No init.sql found'" ]
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           volumeMounts:
             - name: init-sql
               mountPath: /config
@@ -65,9 +80,26 @@ spec:
               mountPath: /docker-entrypoint-initdb.d
       containers:
         - name: mariadb
-          image: mariadb:latest
+          image: mariadb:10.5.27
           ports:
             - containerPort: 3306
+          readinessProbe:
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
           env:
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:

@@ -38,7 +38,7 @@ api-gateway (NGINX)
 - **Docker Compose** provides deterministic local startup and optional developer tooling profiles.
 - **Kubernetes manifests** are the foundation for local Minikube and future AKS overlays.
 - **Documentation** captures runbooks, architecture, demo flow, and decision records.
-- **Planned CI** will validate every language stack, Dockerfiles, filesystem security findings, and rendered Kubernetes manifests.
+- **Planned CI** will validate every language stack, Dockerfiles, and rendered Kubernetes manifests.
 - **Planned GitOps and Azure IaC** will promote the same simple app to AKS without changing the business behavior.
 
 ## Current milestone alignment

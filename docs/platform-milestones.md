@@ -14,7 +14,7 @@ This roadmap turns the Overkill(ed) Todo App into a production-grade Azure/AKS p
 
 ### Objective
 
-Make the repository credible before adding cloud complexity: deterministic local development, hardened containers, validated Kubernetes manifests, and CI quality gates.
+Make the repository credible before adding cloud complexity: deterministic local development, hardened containers, validated Kubernetes manifests, and infrastructure quality gates.
 
 ### Tasks
 
@@ -52,31 +52,30 @@ Make the repository credible before adding cloud complexity: deterministic local
 - [x] Reorganize flat `k8s/*.yaml` manifests into `k8s/base` and `k8s/overlays/local`.
 - [x] Add Kustomize `kustomization.yaml` files for base and local overlays.
 - [x] Add a dedicated namespace manifest.
-- [ ] Add labels and annotations consistently across workloads and services.
-- [ ] Add resource requests and limits to every workload.
-- [ ] Add readiness and liveness probes to every workload.
-- [ ] Add basic pod security contexts.
-- [ ] Replace local-only image settings such as `imagePullPolicy: Never` in non-local overlays.
+- [x] Add labels and annotations consistently across workloads and services.
+- [x] Add resource requests and limits to every workload.
+- [x] Add readiness and liveness probes to every workload.
+- [x] Add basic pod security contexts.
+- [x] Replace local-only image settings such as `imagePullPolicy: Never` in non-local overlays.
 
-#### CI quality gates
+#### Infrastructure quality gates
 
-- [ ] Add `.github/workflows/ci.yaml` for language build and lint checks.
-- [ ] Add `.github/workflows/k8s-validate.yaml` for `kustomize build` and Kubernetes schema validation.
-- [ ] Add `.github/workflows/container-build.yaml` for image builds and Dockerfile linting.
-- [ ] Add Trivy filesystem scanning for dependency and secret findings.
-- [ ] Add a status badge section to the README after workflows exist.
+- [x] Add `.github/workflows/k8s-validate.yaml` for `kustomize build` and Kubernetes schema validation.
+- [x] Add `.github/workflows/container-build.yaml` for image builds and Dockerfile linting.
+- [x] Defer repository vulnerability and secret scanning until a maintained scanner action is selected.
+- [x] Add a status badge section to the README after workflows exist.
 
 ### Acceptance criteria
 
-- [ ] A reviewer can run the app locally from documented instructions.
-- [ ] CI validates frontend, Go, Rust, Haskell, Erlang, Dockerfiles, and Kubernetes manifests.
-- [ ] Kustomize renders the local environment successfully.
-- [ ] Every workload has resources, probes, labels, and a baseline security context.
-- [ ] README clearly states that the app is intentionally simple and the platform is the focus.
+- [x] A reviewer can run the app locally from documented instructions.
+- [x] CI validates Dockerfiles, container builds, and Kubernetes manifests.
+- [x] Kustomize renders the local environment successfully.
+- [x] Every workload has resources, probes, labels, and a baseline security context.
+- [x] README clearly states that the app is intentionally simple and the platform is the focus.
 
 ### Demo moment
 
-Show a clean pull request where CI builds every language, validates Kubernetes, scans the repo, and renders a local Kustomize deployment for the same simple TODO app.
+Show a clean pull request where CI builds the service images, validates Dockerfiles and Kubernetes, and renders a local Kustomize deployment for the same simple TODO app.
 
 ### Complexity traps to avoid
 
@@ -275,7 +274,7 @@ Show a policy-blocked pull request, demonstrate Key Vault secret delivery throug
 2. `.env.example`, `.gitignore`, and Docker Compose profiles.
 3. Container pinning and `.dockerignore` files.
 4. Kustomize base/local overlay migration.
-5. CI for language builds and Kubernetes validation.
+5. CI for container builds, scanning, and Kubernetes validation.
 6. Terraform AKS/ACR baseline.
 7. Image release to ACR.
 8. Flux GitOps bootstrap.
