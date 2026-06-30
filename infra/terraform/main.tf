@@ -79,6 +79,23 @@ resource "azurerm_user_assigned_identity" "flux" {
   tags                = local.common_tags
 }
 
+resource "azurerm_user_assigned_identity" "github_actions_release" {
+  name                = "id-${local.resource_prefix}-github-actions-release"
+  location            = azurerm_resource_group.platform.location
+  resource_group_name = azurerm_resource_group.platform.name
+  tags                = local.common_tags
+}
+
+resource "azurerm_federated_identity_credential" "github_actions_release" {
+  count               = var.github_repository == "" ? 0 : 1
+  name                = "fic-${local.resource_prefix}-github-actions-release"
+  resource_group_name = azurerm_resource_group.platform.name
+  parent_id           = azurerm_user_assigned_identity.github_actions_release.id
+  audience            = ["api://AzureADTokenExchange"]
+  issuer              = "https://token.actions.githubusercontent.com"
+  subject             = "repo:${var.github_repository}:ref:${var.github_actions_ref}"
+}
+
 resource "azurerm_kubernetes_cluster" "platform" {
   name                = "aks-${local.resource_prefix}"
   location            = azurerm_resource_group.platform.location
@@ -124,4 +141,10 @@ resource "azurerm_role_assignment" "external_secrets_key_vault_user" {
   scope                = azurerm_key_vault.platform.id
   role_definition_name = "Key Vault Secrets User"
   principal_id         = azurerm_user_assigned_identity.external_secrets.principal_id
+}
+
+resource "azurerm_role_assignment" "github_actions_acr_push" {
+  scope                = azurerm_container_registry.platform.id
+  role_definition_name = "AcrPush"
+  principal_id         = azurerm_user_assigned_identity.github_actions_release.principal_id
 }
