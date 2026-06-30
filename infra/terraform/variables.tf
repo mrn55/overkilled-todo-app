@@ -76,3 +76,20 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "github_repository" {
+  description = "Optional GitHub repository slug (owner/name) allowed to use OIDC for the image release workflow. Leave empty to skip creating the federated credential."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = var.github_repository == "" || can(regex("^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$", var.github_repository))
+    error_message = "GitHub repository must be empty or use the owner/name format."
+  }
+}
+
+variable "github_actions_ref" {
+  description = "Git ref allowed to assume the GitHub Actions release identity through OIDC."
+  type        = string
+  default     = "refs/heads/master"
+}
