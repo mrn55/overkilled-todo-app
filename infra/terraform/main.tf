@@ -4,11 +4,11 @@ locals {
   resource_prefix = "${var.name_prefix}-${var.environment}"
   common_tags = merge(
     {
-      application = "overkilled-todo"
-      environment = var.environment
+      application  = "overkilled-todo"
+      environment  = var.environment
       "managed-by" = "terraform"
-      owner       = var.owner
-      milestone   = "aks-gitops"
+      owner        = var.owner
+      milestone    = "aks-gitops"
     },
     var.tags
   )
