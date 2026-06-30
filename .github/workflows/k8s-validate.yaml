@@ -17,8 +17,12 @@ jobs:
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4
 
-      - name: Render local overlay
-        run: kubectl kustomize k8s/overlays/local > rendered-local.yaml
+      - name: Render overlays
+        run: |
+          kubectl kustomize k8s/overlays/local > rendered-local.yaml
+          kubectl kustomize k8s/overlays/aks-dev > rendered-aks-dev.yaml
+          kubectl kustomize k8s/overlays/aks-prod > rendered-aks-prod.yaml
+          kubectl kustomize clusters/aks-dev > rendered-cluster-aks-dev.yaml
 
       - name: Install kubeconform
         run: |
@@ -27,4 +31,4 @@ jobs:
           sudo mv kubeconform /usr/local/bin/kubeconform
 
       - name: Validate rendered manifests
-        run: kubeconform -strict -summary -ignore-missing-schemas rendered-local.yaml
+        run: kubeconform -strict -summary -ignore-missing-schemas rendered-*.yaml
