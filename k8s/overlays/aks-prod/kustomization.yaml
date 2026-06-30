@@ -1,0 +1,47 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: todo-app
+commonAnnotations:
+  platform.overkilled.dev/milestone: aks-gitops
+  platform.overkilled.dev/environment: aks-prod
+resources:
+  - ../../base
+  - hpa.yaml
+images:
+  - name: create-service
+    newName: oktodoprodacr.azurecr.io/overkilled-todo-app-create-service
+    newTag: prod-placeholder
+  - name: delete-service
+    newName: oktodoprodacr.azurecr.io/overkilled-todo-app-delete-service
+    newTag: prod-placeholder
+  - name: read-service
+    newName: oktodoprodacr.azurecr.io/overkilled-todo-app-read-service
+    newTag: prod-placeholder
+  - name: todo-frontend
+    newName: oktodoprodacr.azurecr.io/overkilled-todo-app-todo-frontend
+    newTag: prod-placeholder
+  - name: update-service
+    newName: oktodoprodacr.azurecr.io/overkilled-todo-app-update-service
+    newTag: prod-placeholder
+replicas:
+  - name: api-gateway
+    count: 3
+  - name: create-service
+    count: 2
+  - name: delete-service
+    count: 2
+  - name: front-end
+    count: 3
+  - name: read-service
+    count: 3
+  - name: update-service
+    count: 2
+patches:
+  - target:
+      kind: Ingress
+      name: todo-ingress
+    path: patches/ingress.yaml
+  - target:
+      kind: Deployment
+      name: mariadb
+    path: patches/mariadb-resources.yaml
