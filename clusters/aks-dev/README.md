@@ -1,6 +1,6 @@
 # AKS Dev Cluster State
 
-This directory is the Flux bootstrap target for the dev AKS cluster.
+This directory is the Flux bootstrap target for the dev AKS cluster. For the full Azure, ACR image release, and Flux sequence, start with `docs/aks-gitops-runbook.md` from the repository root.
 
 After Terraform creates AKS and the operator has cluster credentials, bootstrap Flux against this path:
 
