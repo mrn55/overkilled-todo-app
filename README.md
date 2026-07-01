@@ -80,6 +80,7 @@ The project roadmap lives in [`docs/platform-milestones.md`](docs/platform-miles
 
 - [`docs/demo-script.md`](docs/demo-script.md): short recruiter/interviewer walkthrough.
 - [`MINIKUBE.md`](MINIKUBE.md): local cluster runbook.
+- [`docs/aks-gitops-runbook.md`](docs/aks-gitops-runbook.md): step-by-step Azure, ACR image release, and Flux runbook.
 
 ## Development guardrails
 

@@ -10,7 +10,7 @@ This directory provisions the Milestone 2 Azure foundation for the Overkill(ed) 
 - Key Vault
 - User-assigned managed identities reserved for External Secrets and Flux integrations
 
-The Terraform is intentionally environment-focused instead of module-heavy. The goal is a readable portfolio demo that can be validated, planned, and applied by one operator.
+The Terraform is intentionally environment-focused instead of module-heavy. The goal is a readable portfolio demo that can be validated, planned, and applied by one operator. If you want the complete end-to-end sequence, start with `docs/aks-gitops-runbook.md` from the repository root and use this file as the Terraform reference.
 
 ## Prerequisites
 
