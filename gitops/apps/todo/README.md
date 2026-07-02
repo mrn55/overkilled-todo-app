@@ -1,5 +1,5 @@
 # TODO GitOps App
 
-Flux reconciles the TODO application from `k8s/overlays/aks-dev`.
+Flux reconciles the TODO application from `k8s/overlays/aks-dev`. The image tags start as placeholders and are updated by the `ACR Image Release` workflow after it builds, scans, publishes, and tags the service images in Azure Container Registry.
 
-The initial image tags are placeholders. The next Milestone 2 implementation step is to add the image release workflow that builds, scans, pushes, and updates this desired state with immutable ACR tags.
+For the full operator flow, use `docs/aks-gitops-runbook.md` from the repository root.

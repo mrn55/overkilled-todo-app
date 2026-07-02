@@ -32,3 +32,18 @@ output "flux_identity_client_id" {
   description = "User-assigned managed identity client ID reserved for Flux integrations."
   value       = azurerm_user_assigned_identity.flux.client_id
 }
+
+output "github_actions_release_identity_client_id" {
+  description = "Client ID for the user-assigned managed identity used by the ACR image release workflow."
+  value       = azurerm_user_assigned_identity.github_actions_release.client_id
+}
+
+output "github_actions_variable_commands" {
+  description = "GitHub CLI commands that configure repository variables required by the ACR image release workflow."
+  value       = <<-EOT
+    gh variable set AZURE_CLIENT_ID --body '${azurerm_user_assigned_identity.github_actions_release.client_id}'
+    gh variable set AZURE_TENANT_ID --body '${data.azurerm_client_config.current.tenant_id}'
+    gh variable set AZURE_SUBSCRIPTION_ID --body '${data.azurerm_client_config.current.subscription_id}'
+    gh variable set ACR_LOGIN_SERVER --body '${azurerm_container_registry.platform.login_server}'
+  EOT
+}

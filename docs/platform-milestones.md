@@ -102,11 +102,11 @@ Provision Azure infrastructure and deploy the application through GitOps so the 
 
 #### Azure container registry and image release
 
-- [ ] Add GitHub Actions workflow to build all service images.
-- [ ] Push versioned images to Azure Container Registry.
-- [ ] Generate SBOM artifacts for each image.
-- [ ] Run image vulnerability scanning before publishing or promotion.
-- [ ] Update Kustomize image tags automatically after successful release.
+- [x] Add GitHub Actions workflow to build all service images.
+- [x] Push versioned images to Azure Container Registry.
+- [x] Generate SBOM artifacts for each image.
+- [x] Run image vulnerability scanning before publishing or promotion.
+- [x] Update Kustomize image tags automatically after successful release.
 
 #### GitOps structure
 
