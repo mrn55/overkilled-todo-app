@@ -22,20 +22,22 @@ The Terraform is intentionally environment-focused instead of module-heavy. The 
 
 ## Validate
 
-```bash
-terraform -chdir=infra/terraform init -backend=false
-terraform -chdir=infra/terraform fmt -check -recursive
-terraform -chdir=infra/terraform validate
+```powershell
+Push-Location infra/terraform
+terraform init -backend=false
+terraform fmt -check -recursive
+terraform validate
+Pop-Location
 ```
 
 ## Plan Dev
 
-```bash
-terraform -chdir=infra/terraform init
-terraform -chdir=infra/terraform plan \
-  -var-file=environments/dev.tfvars \
-  -var="github_repository=$(gh repo view --json nameWithOwner -q .nameWithOwner)" \
-  -out=tfplan
+```powershell
+$GitHubRepository = gh repo view --json nameWithOwner -q .nameWithOwner
+Push-Location infra/terraform
+terraform init
+terraform plan -var-file=environments/dev.tfvars -var "github_repository=$GitHubRepository" -out=tfplan
+Pop-Location
 ```
 
 The `github_repository` variable creates the GitHub Actions OIDC trust for the release workflow. Omit it only when you are provisioning Azure resources before the repository variable setup is ready.
@@ -44,8 +46,10 @@ The `github_repository` variable creates the GitHub Actions OIDC trust for the r
 
 Applies are manual by design at this milestone. A reviewer should see the plan, confirm expected Azure cost and scope, then approve:
 
-```bash
-terraform -chdir=infra/terraform apply tfplan
+```powershell
+Push-Location infra/terraform
+terraform apply tfplan
+Pop-Location
 ```
 
 Before applying, confirm:
@@ -59,10 +63,12 @@ Before applying, confirm:
 
 Get cluster credentials:
 
-```bash
-az aks get-credentials \
-  --resource-group "$(terraform -chdir=infra/terraform output -raw resource_group_name)" \
-  --name "$(terraform -chdir=infra/terraform output -raw aks_cluster_name)"
+```powershell
+Push-Location infra/terraform
+$ResourceGroupName = terraform output -raw resource_group_name
+$AksClusterName = terraform output -raw aks_cluster_name
+Pop-Location
+az aks get-credentials --resource-group $ResourceGroupName --name $AksClusterName
 ```
 
 The ACR login server from `terraform output -raw acr_login_server` is used by the image release workflow and the AKS Kustomize overlays.
@@ -73,8 +79,11 @@ The `ACR Image Release` workflow publishes the five application service images t
 
 After `terraform apply`, run the generated GitHub CLI commands from the repository root to configure the variables consumed by the workflow:
 
-```bash
-terraform -chdir=infra/terraform output -raw github_actions_variable_commands | bash
+```powershell
+Push-Location infra/terraform
+$GitHubVariableCommands = terraform output -raw github_actions_variable_commands
+Pop-Location
+Invoke-Expression $GitHubVariableCommands
 ```
 
 The output sets these repository variables:

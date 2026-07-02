@@ -21,7 +21,7 @@ You need:
 - Flux CLI installed locally.
 - Permission to create Azure resources and GitHub repository variables.
 
-The commands below are written for PowerShell. Set your subscription once before planning:
+The commands below are written for PowerShell and should be run from the repository root. Terraform examples use `Push-Location infra/terraform` instead of `terraform -chdir=...` so PowerShell passes arguments exactly as Terraform expects. Set your subscription once before planning:
 
 ```powershell
 az account set --subscription <subscription-id>
@@ -32,9 +32,11 @@ az account set --subscription <subscription-id>
 ## 1. Validate Terraform locally
 
 ```powershell
-terraform -chdir=infra/terraform init -backend=false
-terraform -chdir=infra/terraform fmt -check -recursive
-terraform -chdir=infra/terraform validate
+Push-Location infra/terraform
+terraform init -backend=false
+terraform fmt -check -recursive
+terraform validate
+Pop-Location
 ```
 
 Checkpoint: validation should pass before you create Azure resources.
@@ -43,8 +45,10 @@ Checkpoint: validation should pass before you create Azure resources.
 
 ```powershell
 $GitHubRepository = gh repo view --json nameWithOwner -q .nameWithOwner
-terraform -chdir=infra/terraform init
-terraform -chdir=infra/terraform plan -var-file=environments/dev.tfvars -var="github_repository=$GitHubRepository" -out=tfplan
+Push-Location infra/terraform
+terraform init
+terraform plan -var-file=environments/dev.tfvars -var "github_repository=$GitHubRepository" -out=tfplan
+Pop-Location
 ```
 
 The `github_repository` value lets Terraform create the GitHub Actions OIDC trust for this repository. Without it, Azure resources can still be created, but the image release workflow will not be able to authenticate to Azure.
@@ -54,7 +58,9 @@ Checkpoint: review the plan for expected resource names, region, AKS node count,
 ## 3. Apply after reviewing cost and scope
 
 ```powershell
-terraform -chdir=infra/terraform apply tfplan
+Push-Location infra/terraform
+terraform apply tfplan
+Pop-Location
 ```
 
 Checkpoint: Terraform should finish with outputs for the AKS cluster, ACR login server, and GitHub Actions release identity.
@@ -64,7 +70,9 @@ Checkpoint: Terraform should finish with outputs for the AKS cluster, ACR login 
 Run this from the repository root after apply:
 
 ```powershell
-$GitHubVariableCommands = terraform -chdir=infra/terraform output -raw github_actions_variable_commands
+Push-Location infra/terraform
+$GitHubVariableCommands = terraform output -raw github_actions_variable_commands
+Pop-Location
 Invoke-Expression $GitHubVariableCommands
 ```
 
@@ -104,8 +112,10 @@ Checkpoint: confirm `k8s/overlays/aks-dev/kustomization.yaml` no longer uses pla
 ## 6. Connect kubectl to AKS
 
 ```powershell
-$ResourceGroupName = terraform -chdir=infra/terraform output -raw resource_group_name
-$AksClusterName = terraform -chdir=infra/terraform output -raw aks_cluster_name
+Push-Location infra/terraform
+$ResourceGroupName = terraform output -raw resource_group_name
+$AksClusterName = terraform output -raw aks_cluster_name
+Pop-Location
 az aks get-credentials --resource-group $ResourceGroupName --name $AksClusterName
 ```
 
@@ -153,12 +163,16 @@ kubectl get deploy,svc,hpa,ingress -n todo-app
 When you are done with the demo environment:
 
 ```powershell
-terraform -chdir=infra/terraform destroy -var-file=environments/dev.tfvars
+Push-Location infra/terraform
+terraform destroy -var-file=environments/dev.tfvars
+Pop-Location
 ```
 
 If you created the GitHub OIDC trust with `github_repository`, pass the same variable during destroy:
 
 ```powershell
 $GitHubRepository = gh repo view --json nameWithOwner -q .nameWithOwner
-terraform -chdir=infra/terraform destroy -var-file=environments/dev.tfvars -var="github_repository=$GitHubRepository"
+Push-Location infra/terraform
+terraform destroy -var-file=environments/dev.tfvars -var "github_repository=$GitHubRepository"
+Pop-Location
 ```
