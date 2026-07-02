@@ -194,6 +194,7 @@ kubectl get deploy,svc,hpa,ingress -n todo-app
 | Ingress does not return traffic. | The repo currently reserves the ingress-nginx GitOps folder, but controller installation is a follow-up implementation step. Install or reconcile ingress-nginx before expecting public ingress traffic. |
 | The GitOps infrastructure folders look empty. | That is intentional for this milestone slice; they are placeholders for follow-up PRs that add ingress-nginx, cert-manager, External Secrets, policy, and monitoring controllers. |
 | Terraform warns that `azure_active_directory_role_based_access_control.managed` is deprecated. | This is expected with the pinned AzureRM 3.x provider. The field is still kept as `true` for managed Entra integration compatibility and should be removed when the Terraform stack is upgraded to AzureRM 4.x. |
+| `terraform destroy` cannot delete `rg-oktodo-dev` because `Microsoft.OperationsManagement/solutions/ContainerInsights(log-oktodo-dev)` still exists. | Import the existing Container Insights solution into Terraform state using the recovery commands in the teardown section, then rerun destroy. This usually means the environment was created before the solution was explicitly tracked in Terraform state. |
 
 ## Tear down the dev environment
 
@@ -210,3 +211,21 @@ $env:TF_VAR_github_repository = (gh repo view --json nameWithOwner -q ".nameWith
 terraform -chdir=infra/terraform destroy `
   -var-file="environments/dev.tfvars"
 ```
+
+### Recover a failed destroy when Container Insights is still in the resource group
+
+If destroy fails with a remaining resource like `Microsoft.OperationsManagement/solutions/ContainerInsights(log-oktodo-dev)`, the AKS monitoring add-on created or retained the Container Insights solution but your local Terraform state does not currently track it. Import that exact solution into state, then rerun destroy.
+
+Use the subscription ID, resource group, and workspace name from your error output. For the default dev names, the import ID shape is:
+
+```powershell
+terraform -chdir=infra/terraform import `
+  -var-file="environments/dev.tfvars" `
+  azurerm_log_analytics_solution.container_insights `
+  "/subscriptions/<subscription-id>/resourceGroups/rg-oktodo-dev/providers/Microsoft.OperationsManagement/solutions/ContainerInsights(log-oktodo-dev)"
+
+terraform -chdir=infra/terraform destroy `
+  -var-file="environments/dev.tfvars"
+```
+
+For the error shown above, replace `<subscription-id>` with `169691-ff44f-1vng-8008s-92jgkjj1k1`. Avoid setting `prevent_deletion_if_contains_resources = false` as the default fix because this stack is intended to explicitly manage and destroy the platform resources it creates.
