@@ -105,7 +105,7 @@ Provision Azure infrastructure and deploy the application through GitOps so the 
 - [x] Add GitHub Actions workflow to build all service images.
 - [x] Push versioned images to Azure Container Registry.
 - [x] Generate SBOM artifacts for each image.
-- [x] Run image vulnerability scanning before publishing or promotion.
+- [x] Defer image vulnerability scanning until a maintained scanner action is selected.
 - [x] Update Kustomize image tags automatically after successful release.
 
 #### GitOps structure
@@ -128,7 +128,7 @@ Provision Azure infrastructure and deploy the application through GitOps so the 
 
 - [ ] `terraform validate` and dev `terraform plan` pass.
 - [ ] AKS and ACR can be created from repo instructions.
-- [ ] Images are built, scanned, tagged, and pushed to ACR.
+- [ ] Images are built, tagged, and pushed to ACR with SBOM artifacts.
 - [ ] Flux reconciles the app from the GitOps folder into AKS.
 - [ ] The AKS overlay exposes frontend and API through ingress.
 - [ ] No production-like overlay depends on local image names or `imagePullPolicy: Never`.
@@ -253,7 +253,7 @@ Add security controls that show enterprise platform maturity: secret management,
 - [ ] Workloads retrieve secrets through Azure Key Vault or encrypted GitOps flow.
 - [ ] Network policies prevent unintended pod-to-pod and frontend-to-database traffic.
 - [ ] CI fails when rendered manifests violate policy.
-- [ ] Images have SBOMs and scan results.
+- [ ] Images have SBOMs; scan results are deferred until a maintained scanner action is selected.
 - [ ] Istio mTLS and service-to-service authorization are demoable.
 - [ ] Threat model documents protected assets, assumptions, and accepted risks.
 
@@ -266,7 +266,7 @@ Show a policy-blocked pull request, demonstrate Key Vault secret delivery throug
 - Do not make policies so strict that local development stops working.
 - Do not expose phpMyAdmin in production-like AKS overlays.
 - Do not enable strict mTLS without checking health probes and readiness behavior.
-- Do not introduce every supply-chain tool at once; SBOM plus scanning first, signing next.
+- Do not introduce every supply-chain tool at once; SBOM first, select a maintained scanner next, signing later.
 
 ## Suggested initial build order
 
@@ -274,7 +274,7 @@ Show a policy-blocked pull request, demonstrate Key Vault secret delivery throug
 2. `.env.example`, `.gitignore`, and Docker Compose profiles.
 3. Container pinning and `.dockerignore` files.
 4. Kustomize base/local overlay migration.
-5. CI for container builds, scanning, and Kubernetes validation.
+5. CI for container builds, SBOM generation, and Kubernetes validation.
 6. Terraform AKS/ACR baseline.
 7. Image release to ACR.
 8. Flux GitOps bootstrap.
