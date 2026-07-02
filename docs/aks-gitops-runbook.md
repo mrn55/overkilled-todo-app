@@ -108,11 +108,38 @@ Checkpoint: confirm `k8s/overlays/aks-dev/kustomization.yaml` no longer uses pla
 
 ## 6. Connect kubectl to AKS
 
+This Terraform stack enables AKS-managed Entra ID and Azure RBAC for the Kubernetes API. That means `az aks get-credentials` only writes a kubeconfig entry; your signed-in Azure principal must also have an Azure Kubernetes Service RBAC role assignment on the AKS cluster before `kubectl` can list or create cluster resources.
+
+For a one-person dev environment, grant your current Azure CLI identity cluster-admin access at the AKS resource scope before the first `kubectl` check:
+
 ```powershell
 $ResourceGroupName = terraform -chdir=infra/terraform output -raw resource_group_name
 $AksClusterName = terraform -chdir=infra/terraform output -raw aks_cluster_name
-az aks get-credentials --resource-group $ResourceGroupName --name $AksClusterName
+$AksResourceId = az aks show `
+  --resource-group $ResourceGroupName `
+  --name $AksClusterName `
+  --query id `
+  --output tsv
+$SignedInObjectId = az ad signed-in-user show --query id --output tsv
+az role assignment create `
+  --assignee-object-id $SignedInObjectId `
+  --assignee-principal-type User `
+  --role "Azure Kubernetes Service RBAC Cluster Admin" `
+  --scope $AksResourceId
+az aks get-credentials --resource-group $ResourceGroupName --name $AksClusterName --overwrite-existing
 ```
+
+If `az ad signed-in-user show` is blocked by tenant permissions, use your user principal name instead:
+
+```powershell
+$SignedInUserPrincipalName = az account show --query user.name --output tsv
+az role assignment create `
+  --assignee $SignedInUserPrincipalName `
+  --role "Azure Kubernetes Service RBAC Cluster Admin" `
+  --scope $AksResourceId
+```
+
+For a shared team environment, prefer adding an Entra group object ID to `admin_group_object_ids` in the environment tfvars and assigning users through that group rather than granting direct per-user cluster-admin access.
 
 Checkpoint:
 
@@ -149,6 +176,7 @@ kubectl get deploy,svc,hpa,ingress -n todo-app
 | --- | --- |
 | The image release workflow cannot log in to Azure. | Confirm `github_repository` was set during Terraform plan/apply and that `gh variable list` shows the four workflow variables. |
 | ACR push is denied. | Confirm Terraform applied the `AcrPush` role assignment for the GitHub Actions release identity. |
+| `kubectl get nodes` returns `Forbidden` for your user object ID after `az aks get-credentials`. | The kubeconfig is present, but your Azure principal does not have Kubernetes API authorization. Assign `Azure Kubernetes Service RBAC Cluster Admin` at the AKS resource scope as shown in step 6, then rerun `az aks get-credentials --overwrite-existing`. |
 | Flux reconciles but pods cannot pull images. | Confirm AKS has `AcrPull` on the ACR and the overlay image names match the Terraform ACR login server. |
 | Ingress does not return traffic. | The repo currently reserves the ingress-nginx GitOps folder, but controller installation is a follow-up implementation step. Install or reconcile ingress-nginx before expecting public ingress traffic. |
 | The GitOps infrastructure folders look empty. | That is intentional for this milestone slice; they are placeholders for follow-up PRs that add ingress-nginx, cert-manager, External Secrets, policy, and monitoring controllers. |
