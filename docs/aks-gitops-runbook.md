@@ -21,9 +21,9 @@ You need:
 - Flux CLI installed locally.
 - Permission to create Azure resources and GitHub repository variables.
 
-Set your subscription once before planning:
+The commands below are written for PowerShell. Set your subscription once before planning:
 
-```bash
+```powershell
 az account set --subscription <subscription-id>
 ```
 
@@ -31,7 +31,7 @@ az account set --subscription <subscription-id>
 
 ## 1. Validate Terraform locally
 
-```bash
+```powershell
 terraform -chdir=infra/terraform init -backend=false
 terraform -chdir=infra/terraform fmt -check -recursive
 terraform -chdir=infra/terraform validate
@@ -41,12 +41,10 @@ Checkpoint: validation should pass before you create Azure resources.
 
 ## 2. Plan the dev environment
 
-```bash
+```powershell
+$GitHubRepository = gh repo view --json nameWithOwner -q .nameWithOwner
 terraform -chdir=infra/terraform init
-terraform -chdir=infra/terraform plan \
-  -var-file=environments/dev.tfvars \
-  -var="github_repository=$(gh repo view --json nameWithOwner -q .nameWithOwner)" \
-  -out=tfplan
+terraform -chdir=infra/terraform plan -var-file=environments/dev.tfvars -var="github_repository=$GitHubRepository" -out=tfplan
 ```
 
 The `github_repository` value lets Terraform create the GitHub Actions OIDC trust for this repository. Without it, Azure resources can still be created, but the image release workflow will not be able to authenticate to Azure.
@@ -55,7 +53,7 @@ Checkpoint: review the plan for expected resource names, region, AKS node count,
 
 ## 3. Apply after reviewing cost and scope
 
-```bash
+```powershell
 terraform -chdir=infra/terraform apply tfplan
 ```
 
@@ -64,6 +62,13 @@ Checkpoint: Terraform should finish with outputs for the AKS cluster, ACR login 
 ## 4. Configure GitHub repository variables from Terraform outputs
 
 Run this from the repository root after apply:
+
+```powershell
+$GitHubVariableCommands = terraform -chdir=infra/terraform output -raw github_actions_variable_commands
+Invoke-Expression $GitHubVariableCommands
+```
+
+If you are running from Git Bash instead, the equivalent is:
 
 ```bash
 terraform -chdir=infra/terraform output -raw github_actions_variable_commands | bash
@@ -78,7 +83,7 @@ This writes the repository variables consumed by the ACR image release workflow:
 
 Checkpoint:
 
-```bash
+```powershell
 gh variable list
 ```
 
@@ -98,32 +103,27 @@ Checkpoint: confirm `k8s/overlays/aks-dev/kustomization.yaml` no longer uses pla
 
 ## 6. Connect kubectl to AKS
 
-```bash
-az aks get-credentials \
-  --resource-group "$(terraform -chdir=infra/terraform output -raw resource_group_name)" \
-  --name "$(terraform -chdir=infra/terraform output -raw aks_cluster_name)"
+```powershell
+$ResourceGroupName = terraform -chdir=infra/terraform output -raw resource_group_name
+$AksClusterName = terraform -chdir=infra/terraform output -raw aks_cluster_name
+az aks get-credentials --resource-group $ResourceGroupName --name $AksClusterName
 ```
 
 Checkpoint:
 
-```bash
+```powershell
 kubectl get nodes
 ```
 
 ## 7. Bootstrap Flux to the dev cluster
 
-```bash
-flux bootstrap github \
-  --owner=<github-owner> \
-  --repository=overkilled-todo-app \
-  --branch=master \
-  --path=clusters/aks-dev \
-  --personal
+```powershell
+flux bootstrap github --owner=<github-owner> --repository=overkilled-todo-app --branch=master --path=clusters/aks-dev --personal
 ```
 
 Checkpoint:
 
-```bash
+```powershell
 flux get sources git -A
 flux get kustomizations -A
 kubectl get deploy,svc,hpa,ingress -n todo-app
@@ -133,7 +133,7 @@ kubectl get deploy,svc,hpa,ingress -n todo-app
 
 If you need Flux to pick up a new image-tag commit immediately:
 
-```bash
+```powershell
 flux reconcile kustomization todo-app --namespace flux-system --with-source
 kubectl get deploy,svc,hpa,ingress -n todo-app
 ```
@@ -152,14 +152,13 @@ kubectl get deploy,svc,hpa,ingress -n todo-app
 
 When you are done with the demo environment:
 
-```bash
+```powershell
 terraform -chdir=infra/terraform destroy -var-file=environments/dev.tfvars
 ```
 
 If you created the GitHub OIDC trust with `github_repository`, pass the same variable during destroy:
 
-```bash
-terraform -chdir=infra/terraform destroy \
-  -var-file=environments/dev.tfvars \
-  -var="github_repository=$(gh repo view --json nameWithOwner -q .nameWithOwner)"
+```powershell
+$GitHubRepository = gh repo view --json nameWithOwner -q .nameWithOwner
+terraform -chdir=infra/terraform destroy -var-file=environments/dev.tfvars -var="github_repository=$GitHubRepository"
 ```
