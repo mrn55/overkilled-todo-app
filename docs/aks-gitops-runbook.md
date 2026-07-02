@@ -7,7 +7,7 @@ This is the step-by-step Milestone 2 path after the local Minikube flow works. T
 | Layer | Repo location | What it does |
 | --- | --- | --- |
 | Azure infrastructure | `infra/terraform/` | Creates the resource group, virtual network, AKS cluster, ACR, Log Analytics, Key Vault, managed identities, and the GitHub Actions release identity. |
-| Image release | `.github/workflows/acr-image-release.yaml` | Builds the five app images, creates SBOMs, scans for high/critical vulnerabilities, pushes to ACR, and updates AKS Kustomize image tags. |
+| Image release | `.github/workflows/acr-image-release.yaml` | Builds the five app images, creates SBOMs, pushes to ACR, and updates AKS Kustomize image tags. Vulnerability scanning is intentionally deferred until a maintained scanner action is selected. |
 | AKS app manifests | `k8s/overlays/aks-dev` | Renders the production-shaped dev deployment that points at ACR images and AKS ingress settings. |
 | GitOps cluster state | `clusters/aks-dev` and `gitops/` | Tells Flux what to reconcile into the dev AKS cluster. |
 
@@ -99,9 +99,10 @@ The workflow should:
 
 1. Build each app image.
 2. Generate an SPDX SBOM artifact for each image.
-3. Run Trivy high/critical vulnerability scanning.
-4. Push only successfully scanned images to ACR.
-5. Update the AKS overlay image tags.
+3. Push images to ACR after SBOM generation.
+4. Update the AKS overlay image tags.
+
+Vulnerability scanning is intentionally deferred until a maintained scanner action is selected.
 
 Checkpoint: confirm `k8s/overlays/aks-dev/kustomization.yaml` no longer uses placeholder tags after a successful release commit.
 

@@ -88,4 +88,4 @@ The output sets these repository variables:
 - `AZURE_SUBSCRIPTION_ID`: Azure subscription ID containing the ACR.
 - `ACR_LOGIN_SERVER`: Value from `terraform output -raw acr_login_server`.
 
-The workflow uses GitHub OIDC through `azure/login`, builds each image, creates an SPDX SBOM artifact, fails on high or critical Trivy findings, pushes only successfully scanned images, and updates the selected AKS Kustomize overlay image tags to the released SHA tag.
+The workflow uses GitHub OIDC through `azure/login`, builds each image, creates an SPDX SBOM artifact, pushes the images to ACR, and updates the selected AKS Kustomize overlay image tags to the released SHA tag. Vulnerability scanning is intentionally deferred until a maintained scanner action is selected.
