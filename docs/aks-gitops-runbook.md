@@ -67,7 +67,9 @@ Run this from the repository root after apply:
 
 ```powershell
 $GitHubVariableCommands = terraform -chdir=infra/terraform output -raw github_actions_variable_commands
-Invoke-Expression $GitHubVariableCommands
+$GitHubVariableCommands | Where-Object { $_.Trim() } | ForEach-Object {
+    Invoke-Expression $_
+}
 ```
 
 If you are running from Git Bash instead, the equivalent is:

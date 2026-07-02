@@ -76,7 +76,9 @@ After `terraform apply`, run the generated GitHub CLI commands from the reposito
 
 ```powershell
 $GitHubVariableCommands = terraform -chdir=infra/terraform output -raw github_actions_variable_commands
-Invoke-Expression $GitHubVariableCommands
+$GitHubVariableCommands | Where-Object { $_.Trim() } | ForEach-Object {
+    Invoke-Expression $_
+}
 ```
 
 The output sets these repository variables:
