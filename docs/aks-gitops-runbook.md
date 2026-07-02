@@ -216,6 +216,21 @@ terraform -chdir=infra/terraform destroy `
 
 If destroy fails with a remaining resource like `Microsoft.OperationsManagement/solutions/ContainerInsights(log-oktodo-dev)`, the AKS monitoring add-on created or retained the Container Insights solution but your local Terraform state does not currently track it. Import that exact solution into state, then rerun destroy.
 
+Before importing, confirm your checkout contains the Terraform resource block that the import target uses:
+
+```powershell
+Select-String `
+  -Path infra/terraform/*.tf `
+  -Pattern 'resource "azurerm_log_analytics_solution" "container_insights"'
+```
+
+If that command prints no match, update your local branch first because Terraform cannot import to an address that does not exist in configuration:
+
+```powershell
+git pull
+terraform -chdir=infra/terraform init
+```
+
 Use the subscription ID, resource group, and workspace name from your error output. For the default dev names, the import ID shape is:
 
 ```powershell
@@ -228,4 +243,4 @@ terraform -chdir=infra/terraform destroy `
   -var-file="environments/dev.tfvars"
 ```
 
-For the error shown above, replace `<subscription-id>` with `169691-ff44f-1vng-8008s-92jgkjj1k1`. Avoid setting `prevent_deletion_if_contains_resources = false` as the default fix because this stack is intended to explicitly manage and destroy the platform resources it creates.
+For the error shown above, replace `<subscription-id>` with `169691-ff44f-1vng-8008s-92jgkjj1k1`. If Terraform says `resource address "azurerm_log_analytics_solution.container_insights" does not exist in the configuration`, your local checkout does not include the current Terraform configuration yet; pull the latest branch contents, rerun `terraform init`, and then rerun the import. Avoid setting `prevent_deletion_if_contains_resources = false` as the default fix because this stack is intended to explicitly manage and destroy the platform resources it creates.
