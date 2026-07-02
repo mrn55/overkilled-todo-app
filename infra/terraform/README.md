@@ -23,33 +23,29 @@ The Terraform is intentionally environment-focused instead of module-heavy. The 
 ## Validate
 
 ```powershell
-Push-Location infra/terraform
-terraform init -backend=false
-terraform fmt -check -recursive
-terraform validate
-Pop-Location
+terraform -chdir=infra/terraform init -backend=false
+terraform -chdir=infra/terraform fmt -check -recursive
+terraform -chdir=infra/terraform validate
 ```
 
 ## Plan Dev
 
 ```powershell
-$GitHubRepository = gh repo view --json nameWithOwner -q .nameWithOwner
-Push-Location infra/terraform
-terraform init
-terraform plan -var-file=environments/dev.tfvars -var "github_repository=$GitHubRepository" -out=tfplan
-Pop-Location
+$env:TF_VAR_github_repository = (gh repo view --json nameWithOwner -q ".nameWithOwner").Trim()
+terraform -chdir=infra/terraform init
+terraform -chdir=infra/terraform plan `
+  -var-file="environments/dev.tfvars" `
+  -out="tfplan"
 ```
 
-The `github_repository` variable creates the GitHub Actions OIDC trust for the release workflow. Omit it only when you are provisioning Azure resources before the repository variable setup is ready.
+The `TF_VAR_github_repository` environment variable creates the GitHub Actions OIDC trust for the release workflow without requiring a long `-var` argument in PowerShell. Omit it only when you are provisioning Azure resources before the repository variable setup is ready.
 
 ## Apply Expectations
 
 Applies are manual by design at this milestone. A reviewer should see the plan, confirm expected Azure cost and scope, then approve:
 
 ```powershell
-Push-Location infra/terraform
-terraform apply tfplan
-Pop-Location
+terraform -chdir=infra/terraform apply "tfplan"
 ```
 
 Before applying, confirm:
@@ -58,16 +54,15 @@ Before applying, confirm:
 - Resource names and region match the target environment.
 - AKS node count and VM size are acceptable for demo cost.
 - Key Vault purge protection is understood before destroying resources.
+- The AzureRM 3.x deprecation warning for `azure_active_directory_role_based_access_control.managed` is expected; the field remains set to `true` for managed Entra integration compatibility until this stack upgrades to AzureRM 4.x.
 
 ## After Provisioning
 
 Get cluster credentials:
 
 ```powershell
-Push-Location infra/terraform
-$ResourceGroupName = terraform output -raw resource_group_name
-$AksClusterName = terraform output -raw aks_cluster_name
-Pop-Location
+$ResourceGroupName = terraform -chdir=infra/terraform output -raw resource_group_name
+$AksClusterName = terraform -chdir=infra/terraform output -raw aks_cluster_name
 az aks get-credentials --resource-group $ResourceGroupName --name $AksClusterName
 ```
 
@@ -80,9 +75,7 @@ The `ACR Image Release` workflow publishes the five application service images t
 After `terraform apply`, run the generated GitHub CLI commands from the repository root to configure the variables consumed by the workflow:
 
 ```powershell
-Push-Location infra/terraform
-$GitHubVariableCommands = terraform output -raw github_actions_variable_commands
-Pop-Location
+$GitHubVariableCommands = terraform -chdir=infra/terraform output -raw github_actions_variable_commands
 Invoke-Expression $GitHubVariableCommands
 ```
 
