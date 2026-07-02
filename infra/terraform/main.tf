@@ -53,6 +53,20 @@ resource "azurerm_log_analytics_workspace" "platform" {
   tags                = local.common_tags
 }
 
+resource "azurerm_log_analytics_solution" "container_insights" {
+  solution_name         = "ContainerInsights"
+  location              = azurerm_resource_group.platform.location
+  resource_group_name   = azurerm_resource_group.platform.name
+  workspace_resource_id = azurerm_log_analytics_workspace.platform.id
+  workspace_name        = azurerm_log_analytics_workspace.platform.name
+  tags                  = local.common_tags
+
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/ContainerInsights"
+  }
+}
+
 resource "azurerm_key_vault" "platform" {
   name                       = substr(replace("kv-${local.resource_prefix}", "-", ""), 0, 24)
   location                   = azurerm_resource_group.platform.location
@@ -129,6 +143,10 @@ resource "azurerm_kubernetes_cluster" "platform" {
   oms_agent {
     log_analytics_workspace_id = azurerm_log_analytics_workspace.platform.id
   }
+
+  depends_on = [
+    azurerm_log_analytics_solution.container_insights,
+  ]
 
   workload_identity_enabled = true
   oidc_issuer_enabled       = true

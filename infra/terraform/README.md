@@ -6,7 +6,7 @@ This directory provisions the Milestone 2 Azure foundation for the Overkill(ed) 
 - Virtual network and AKS subnet
 - AKS cluster with Azure AD RBAC, OIDC issuer, workload identity, and Log Analytics agent
 - Azure Container Registry
-- Log Analytics workspace
+- Log Analytics workspace and the Container Insights solution used by the AKS Log Analytics agent
 - Key Vault
 - User-assigned managed identities reserved for External Secrets and Flux integrations
 
@@ -55,6 +55,23 @@ Before applying, confirm:
 - AKS node count and VM size are acceptable for demo cost.
 - Key Vault purge protection is understood before destroying resources.
 - The AzureRM 3.x deprecation warning for `azure_active_directory_role_based_access_control.managed` is expected; the field remains set to `true` for managed Entra integration compatibility until this stack upgrades to AzureRM 4.x.
+
+## Destroy Dev
+
+The AKS `oms_agent` add-on requires the Log Analytics `ContainerInsights` solution. This stack manages that solution explicitly so `terraform destroy` can remove it before deleting the resource group instead of leaving Azure-created nested resources behind.
+
+If you created the dev environment before this resource was added and `terraform destroy` already failed with `Microsoft.OperationsManagement/solutions/ContainerInsights(...)` still in the resource group, recover by importing the existing solution into state and then rerunning destroy:
+
+```powershell
+terraform -chdir=infra/terraform import `
+  -var-file="environments/dev.tfvars" `
+  azurerm_log_analytics_solution.container_insights `
+  "/subscriptions/<subscription-id>/resourceGroups/rg-oktodo-dev/providers/Microsoft.OperationsManagement/solutions/ContainerInsights(log-oktodo-dev)"
+
+terraform -chdir=infra/terraform destroy -var-file="environments/dev.tfvars"
+```
+
+Use the subscription ID, resource group name, and workspace name from the failing destroy output. Avoid setting `prevent_deletion_if_contains_resources = false` as the default fix because this Terraform is intended to account for all platform resources it creates.
 
 ## After Provisioning
 
