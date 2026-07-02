@@ -2,42 +2,42 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: todo-app
 commonAnnotations:
-  platform.overkilled.dev/milestone: aks-gitops
   platform.overkilled.dev/environment: aks-dev
+  platform.overkilled.dev/milestone: aks-gitops
 resources:
-  - ../../base
-  - hpa.yaml
+- ../../base
+- hpa.yaml
 images:
-  - name: create-service
-    newName: oktododevacr.azurecr.io/overkilled-todo-app-create-service
-    newTag: dev-placeholder
-  - name: delete-service
-    newName: oktododevacr.azurecr.io/overkilled-todo-app-delete-service
-    newTag: dev-placeholder
-  - name: read-service
-    newName: oktododevacr.azurecr.io/overkilled-todo-app-read-service
-    newTag: dev-placeholder
-  - name: todo-frontend
-    newName: oktododevacr.azurecr.io/overkilled-todo-app-todo-frontend
-    newTag: dev-placeholder
-  - name: update-service
-    newName: oktododevacr.azurecr.io/overkilled-todo-app-update-service
-    newTag: dev-placeholder
+- name: create-service
+  newName: oktododevacr.azurecr.io/overkilled-todo-app-create-service
+  newTag: sha-7a5eda49d00e
+- name: delete-service
+  newName: oktododevacr.azurecr.io/overkilled-todo-app-delete-service
+  newTag: sha-7a5eda49d00e
+- name: read-service
+  newName: oktododevacr.azurecr.io/overkilled-todo-app-read-service
+  newTag: sha-7a5eda49d00e
+- name: todo-frontend
+  newName: oktododevacr.azurecr.io/overkilled-todo-app-todo-frontend
+  newTag: sha-7a5eda49d00e
+- name: update-service
+  newName: oktododevacr.azurecr.io/overkilled-todo-app-update-service
+  newTag: sha-7a5eda49d00e
 replicas:
-  - name: api-gateway
-    count: 2
-  - name: create-service
-    count: 2
-  - name: delete-service
-    count: 2
-  - name: front-end
-    count: 2
-  - name: read-service
-    count: 2
-  - name: update-service
-    count: 2
+- count: 2
+  name: api-gateway
+- count: 2
+  name: create-service
+- count: 2
+  name: delete-service
+- count: 2
+  name: front-end
+- count: 2
+  name: read-service
+- count: 2
+  name: update-service
 patches:
-  - target:
-      kind: Ingress
-      name: todo-ingress
-    path: patches/ingress.yaml
+- path: patches/ingress.yaml
+  target:
+    kind: Ingress
+    name: todo-ingress
