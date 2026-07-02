@@ -21,7 +21,7 @@ You need:
 - Flux CLI installed locally.
 - Permission to create Azure resources and GitHub repository variables.
 
-The commands below are written for PowerShell and should be run from the repository root. Terraform examples use `Push-Location infra/terraform` instead of `terraform -chdir=...` so PowerShell passes arguments exactly as Terraform expects. Set your subscription once before planning:
+The commands below are written for PowerShell and should be run from the repository root. Set your subscription once before planning:
 
 ```powershell
 az account set --subscription <subscription-id>
@@ -32,11 +32,9 @@ az account set --subscription <subscription-id>
 ## 1. Validate Terraform locally
 
 ```powershell
-Push-Location infra/terraform
-terraform init -backend=false
-terraform fmt -check -recursive
-terraform validate
-Pop-Location
+terraform -chdir=infra/terraform init -backend=false
+terraform -chdir=infra/terraform fmt -check -recursive
+terraform -chdir=infra/terraform validate
 ```
 
 Checkpoint: validation should pass before you create Azure resources.
@@ -44,23 +42,21 @@ Checkpoint: validation should pass before you create Azure resources.
 ## 2. Plan the dev environment
 
 ```powershell
-$GitHubRepository = gh repo view --json nameWithOwner -q .nameWithOwner
-Push-Location infra/terraform
-terraform init
-terraform plan -var-file=environments/dev.tfvars -var "github_repository=$GitHubRepository" -out=tfplan
-Pop-Location
+$env:TF_VAR_github_repository = (gh repo view --json nameWithOwner -q ".nameWithOwner").Trim()
+terraform -chdir=infra/terraform init
+terraform -chdir=infra/terraform plan `
+  -var-file="environments/dev.tfvars" `
+  -out="tfplan"
 ```
 
-The `github_repository` value lets Terraform create the GitHub Actions OIDC trust for this repository. Without it, Azure resources can still be created, but the image release workflow will not be able to authenticate to Azure.
+The `TF_VAR_github_repository` environment variable lets Terraform create the GitHub Actions OIDC trust for this repository without requiring a long `-var` argument in PowerShell. Without it, Azure resources can still be created, but the image release workflow will not be able to authenticate to Azure.
 
 Checkpoint: review the plan for expected resource names, region, AKS node count, and ACR creation.
 
 ## 3. Apply after reviewing cost and scope
 
 ```powershell
-Push-Location infra/terraform
-terraform apply tfplan
-Pop-Location
+terraform -chdir=infra/terraform apply "tfplan"
 ```
 
 Checkpoint: Terraform should finish with outputs for the AKS cluster, ACR login server, and GitHub Actions release identity.
@@ -70,9 +66,7 @@ Checkpoint: Terraform should finish with outputs for the AKS cluster, ACR login 
 Run this from the repository root after apply:
 
 ```powershell
-Push-Location infra/terraform
-$GitHubVariableCommands = terraform output -raw github_actions_variable_commands
-Pop-Location
+$GitHubVariableCommands = terraform -chdir=infra/terraform output -raw github_actions_variable_commands
 Invoke-Expression $GitHubVariableCommands
 ```
 
@@ -112,10 +106,8 @@ Checkpoint: confirm `k8s/overlays/aks-dev/kustomization.yaml` no longer uses pla
 ## 6. Connect kubectl to AKS
 
 ```powershell
-Push-Location infra/terraform
-$ResourceGroupName = terraform output -raw resource_group_name
-$AksClusterName = terraform output -raw aks_cluster_name
-Pop-Location
+$ResourceGroupName = terraform -chdir=infra/terraform output -raw resource_group_name
+$AksClusterName = terraform -chdir=infra/terraform output -raw aks_cluster_name
 az aks get-credentials --resource-group $ResourceGroupName --name $AksClusterName
 ```
 
@@ -157,22 +149,20 @@ kubectl get deploy,svc,hpa,ingress -n todo-app
 | Flux reconciles but pods cannot pull images. | Confirm AKS has `AcrPull` on the ACR and the overlay image names match the Terraform ACR login server. |
 | Ingress does not return traffic. | The repo currently reserves the ingress-nginx GitOps folder, but controller installation is a follow-up implementation step. Install or reconcile ingress-nginx before expecting public ingress traffic. |
 | The GitOps infrastructure folders look empty. | That is intentional for this milestone slice; they are placeholders for follow-up PRs that add ingress-nginx, cert-manager, External Secrets, policy, and monitoring controllers. |
+| Terraform warns that `azure_active_directory_role_based_access_control.managed` is deprecated. | This is expected with the pinned AzureRM 3.x provider. The field is still kept as `true` for managed Entra integration compatibility and should be removed when the Terraform stack is upgraded to AzureRM 4.x. |
 
 ## Tear down the dev environment
 
 When you are done with the demo environment:
 
 ```powershell
-Push-Location infra/terraform
-terraform destroy -var-file=environments/dev.tfvars
-Pop-Location
+terraform -chdir=infra/terraform destroy -var-file="environments/dev.tfvars"
 ```
 
-If you created the GitHub OIDC trust with `github_repository`, pass the same variable during destroy:
+If you created the GitHub OIDC trust with `TF_VAR_github_repository`, set the same environment variable during destroy:
 
 ```powershell
-$GitHubRepository = gh repo view --json nameWithOwner -q .nameWithOwner
-Push-Location infra/terraform
-terraform destroy -var-file=environments/dev.tfvars -var "github_repository=$GitHubRepository"
-Pop-Location
+$env:TF_VAR_github_repository = (gh repo view --json nameWithOwner -q ".nameWithOwner").Trim()
+terraform -chdir=infra/terraform destroy `
+  -var-file="environments/dev.tfvars"
 ```

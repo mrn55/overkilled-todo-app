@@ -118,6 +118,9 @@ resource "azurerm_kubernetes_cluster" "platform" {
   }
 
   azure_active_directory_role_based_access_control {
+    # AzureRM 3.x warns that this argument is deprecated, but it is still
+    # required to keep AKS-managed Entra integration explicit until the
+    # provider v4 upgrade removes/defaults it.
     managed                = true
     azure_rbac_enabled     = true
     admin_group_object_ids = var.admin_group_object_ids
