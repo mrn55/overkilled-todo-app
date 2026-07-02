@@ -60,7 +60,19 @@ Before applying, confirm:
 
 The AKS `oms_agent` add-on requires the Log Analytics `ContainerInsights` solution. This stack manages that solution explicitly so `terraform destroy` can remove it before deleting the resource group instead of leaving Azure-created nested resources behind.
 
-If you created the dev environment before this resource was added and `terraform destroy` already failed with `Microsoft.OperationsManagement/solutions/ContainerInsights(...)` still in the resource group, recover by importing the existing solution into state and then rerunning destroy:
+If you created the dev environment before this resource was added and `terraform destroy` already failed with `Microsoft.OperationsManagement/solutions/ContainerInsights(...)` still in the resource group, recover by importing the existing solution into state and then rerunning destroy.
+
+First, confirm your checkout contains the import target resource block:
+
+```powershell
+Select-String `
+  -Path infra/terraform/*.tf `
+  -Pattern 'resource "azurerm_log_analytics_solution" "container_insights"'
+```
+
+If that command prints no match, pull the latest branch contents and rerun `terraform init` before importing. Terraform cannot import a remote resource to an address that does not exist in the local configuration.
+
+Then import the existing solution:
 
 ```powershell
 terraform -chdir=infra/terraform import `
