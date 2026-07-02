@@ -149,9 +149,22 @@ kubectl get nodes
 
 ## 7. Bootstrap Flux to the dev cluster
 
+Export a GitHub token before bootstrapping so Flux can authenticate non-interactively from PowerShell. The `--private=false` flag matches this repository's public visibility; use `--private=true` for a private fork.
+
 ```powershell
-flux bootstrap github --owner=<github-owner> --repository=overkilled-todo-app --branch=master --path=clusters/aks-dev --personal
+$env:GITHUB_TOKEN = gh auth token
+$GitHubOwner = gh repo view --json owner -q ".owner.login"
+
+flux bootstrap github `
+  --owner=$GitHubOwner `
+  --repository=overkilled-todo-app `
+  --branch=master `
+  --path=clusters/aks-dev `
+  --personal `
+  --private=false
 ```
+
+If you are running against a fork and already know the owner, setting `--owner=<github-owner>` directly is also fine.
 
 Checkpoint:
 
