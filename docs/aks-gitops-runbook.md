@@ -108,11 +108,38 @@ Checkpoint: confirm `k8s/overlays/aks-dev/kustomization.yaml` no longer uses pla
 
 ## 6. Connect kubectl to AKS
 
+This Terraform stack enables AKS-managed Entra ID and Azure RBAC for the Kubernetes API. That means `az aks get-credentials` only writes a kubeconfig entry; your signed-in Azure principal must also have an Azure Kubernetes Service RBAC role assignment on the AKS cluster before `kubectl` can list or create cluster resources.
+
+For a one-person dev environment, grant your current Azure CLI identity cluster-admin access at the AKS resource scope before the first `kubectl` check:
+
 ```powershell
 $ResourceGroupName = terraform -chdir=infra/terraform output -raw resource_group_name
 $AksClusterName = terraform -chdir=infra/terraform output -raw aks_cluster_name
-az aks get-credentials --resource-group $ResourceGroupName --name $AksClusterName
+$AksResourceId = az aks show `
+  --resource-group $ResourceGroupName `
+  --name $AksClusterName `
+  --query id `
+  --output tsv
+$SignedInObjectId = az ad signed-in-user show --query id --output tsv
+az role assignment create `
+  --assignee-object-id $SignedInObjectId `
+  --assignee-principal-type User `
+  --role "Azure Kubernetes Service RBAC Cluster Admin" `
+  --scope $AksResourceId
+az aks get-credentials --resource-group $ResourceGroupName --name $AksClusterName --overwrite-existing
 ```
+
+If `az ad signed-in-user show` is blocked by tenant permissions, use your user principal name instead:
+
+```powershell
+$SignedInUserPrincipalName = az account show --query user.name --output tsv
+az role assignment create `
+  --assignee $SignedInUserPrincipalName `
+  --role "Azure Kubernetes Service RBAC Cluster Admin" `
+  --scope $AksResourceId
+```
+
+For a shared team environment, prefer adding an Entra group object ID to `admin_group_object_ids` in the environment tfvars and assigning users through that group rather than granting direct per-user cluster-admin access.
 
 Checkpoint:
 
@@ -122,9 +149,22 @@ kubectl get nodes
 
 ## 7. Bootstrap Flux to the dev cluster
 
+Export a GitHub token before bootstrapping so Flux can authenticate non-interactively from PowerShell. The `--private=false` flag matches this repository's public visibility; use `--private=true` for a private fork.
+
 ```powershell
-flux bootstrap github --owner=<github-owner> --repository=overkilled-todo-app --branch=master --path=clusters/aks-dev --personal
+$env:GITHUB_TOKEN = gh auth token
+$GitHubOwner = gh repo view --json owner -q ".owner.login"
+
+flux bootstrap github `
+  --owner=$GitHubOwner `
+  --repository=overkilled-todo-app `
+  --branch=master `
+  --path=clusters/aks-dev `
+  --personal `
+  --private=false
 ```
+
+If you are running against a fork and already know the owner, setting `--owner=<github-owner>` directly is also fine.
 
 Checkpoint:
 
@@ -149,10 +189,12 @@ kubectl get deploy,svc,hpa,ingress -n todo-app
 | --- | --- |
 | The image release workflow cannot log in to Azure. | Confirm `github_repository` was set during Terraform plan/apply and that `gh variable list` shows the four workflow variables. |
 | ACR push is denied. | Confirm Terraform applied the `AcrPush` role assignment for the GitHub Actions release identity. |
+| `kubectl get nodes` returns `Forbidden` for your user object ID after `az aks get-credentials`. | The kubeconfig is present, but your Azure principal does not have Kubernetes API authorization. Assign `Azure Kubernetes Service RBAC Cluster Admin` at the AKS resource scope as shown in step 6, then rerun `az aks get-credentials --overwrite-existing`. |
 | Flux reconciles but pods cannot pull images. | Confirm AKS has `AcrPull` on the ACR and the overlay image names match the Terraform ACR login server. |
 | Ingress does not return traffic. | The repo currently reserves the ingress-nginx GitOps folder, but controller installation is a follow-up implementation step. Install or reconcile ingress-nginx before expecting public ingress traffic. |
 | The GitOps infrastructure folders look empty. | That is intentional for this milestone slice; they are placeholders for follow-up PRs that add ingress-nginx, cert-manager, External Secrets, policy, and monitoring controllers. |
 | Terraform warns that `azure_active_directory_role_based_access_control.managed` is deprecated. | This is expected with the pinned AzureRM 3.x provider. The field is still kept as `true` for managed Entra integration compatibility and should be removed when the Terraform stack is upgraded to AzureRM 4.x. |
+| `terraform destroy` cannot delete `rg-oktodo-dev` because `Microsoft.OperationsManagement/solutions/ContainerInsights(log-oktodo-dev)` still exists. | Import the existing Container Insights solution into Terraform state using the recovery commands in the teardown section, then rerun destroy. This usually means the environment was created before the solution was explicitly tracked in Terraform state. |
 
 ## Tear down the dev environment
 
@@ -169,3 +211,36 @@ $env:TF_VAR_github_repository = (gh repo view --json nameWithOwner -q ".nameWith
 terraform -chdir=infra/terraform destroy `
   -var-file="environments/dev.tfvars"
 ```
+
+### Recover a failed destroy when Container Insights is still in the resource group
+
+If destroy fails with a remaining resource like `Microsoft.OperationsManagement/solutions/ContainerInsights(log-oktodo-dev)`, the AKS monitoring add-on created or retained the Container Insights solution but your local Terraform state does not currently track it. Import that exact solution into state, then rerun destroy.
+
+Before importing, confirm your checkout contains the Terraform resource block that the import target uses:
+
+```powershell
+Select-String `
+  -Path infra/terraform/*.tf `
+  -Pattern 'resource "azurerm_log_analytics_solution" "container_insights"'
+```
+
+If that command prints no match, update your local branch first because Terraform cannot import to an address that does not exist in configuration:
+
+```powershell
+git pull
+terraform -chdir=infra/terraform init
+```
+
+Use the subscription ID, resource group, and workspace name from your error output. For the default dev names, the import ID shape is:
+
+```powershell
+terraform -chdir=infra/terraform import `
+  -var-file="environments/dev.tfvars" `
+  azurerm_log_analytics_solution.container_insights `
+  "/subscriptions/<subscription-id>/resourceGroups/rg-oktodo-dev/providers/Microsoft.OperationsManagement/solutions/ContainerInsights(log-oktodo-dev)"
+
+terraform -chdir=infra/terraform destroy `
+  -var-file="environments/dev.tfvars"
+```
+
+For the error shown above, replace `<subscription-id>` with `169691-ff44f-1vng-8008s-92jgkjj1k1`. If Terraform says `resource address "azurerm_log_analytics_solution.container_insights" does not exist in the configuration`, your local checkout does not include the current Terraform configuration yet; pull the latest branch contents, rerun `terraform init`, and then rerun the import. Avoid setting `prevent_deletion_if_contains_resources = false` as the default fix because this stack is intended to explicitly manage and destroy the platform resources it creates.
