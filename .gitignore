@@ -31,6 +31,8 @@ screenshots/
 .cache/
 .pytest_cache/
 .terraform/
+tfplan
+*.tfplan
 terraform.tfstate*
 node_modules/
 target/
