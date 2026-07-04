@@ -9,7 +9,7 @@ This is the step-by-step Milestone 2 path after the local Minikube flow works. T
 | Azure infrastructure | `infra/terraform/` | Creates the resource group, virtual network, AKS cluster, ACR, Log Analytics, Key Vault, managed identities, and the GitHub Actions release identity. |
 | Image release | `.github/workflows/acr-image-release.yaml` | Builds the five app images, creates SBOMs, pushes to ACR, and updates AKS Kustomize image tags. Vulnerability scanning is intentionally deferred until a maintained scanner action is selected. |
 | AKS app manifests | `k8s/overlays/aks-dev` | Renders the production-shaped dev deployment that points at ACR images and AKS ingress settings. |
-| GitOps cluster state | `clusters/aks-dev` and `gitops/` | Tells Flux what to reconcile into the dev AKS cluster. |
+| GitOps cluster state | `clusters/aks-dev` and `gitops/` | Tells Flux what to reconcile into the dev AKS cluster, including ingress-nginx infrastructure and the app overlay. |
 
 ## Before you start
 
@@ -171,6 +171,8 @@ Checkpoint:
 ```powershell
 flux get sources git -A
 flux get kustomizations -A
+kubectl get helmrepository,helmrelease -n ingress-nginx
+kubectl get pods,svc -n ingress-nginx
 kubectl get deploy,svc,hpa,ingress -n todo-app
 ```
 
@@ -183,6 +185,19 @@ flux reconcile kustomization todo-app --namespace flux-system --with-source
 kubectl get deploy,svc,hpa,ingress -n todo-app
 ```
 
+## 9. Verify public ingress
+
+The AKS overlay routes frontend traffic from `/` to `front-end` and API traffic from `/todo` to `api-gateway`. The ingress-nginx controller is reconciled from `gitops/infrastructure/ingress-nginx` and publishes an Azure LoadBalancer service.
+
+```powershell
+kubectl get svc ingress-nginx-controller -n ingress-nginx
+$IngressIp = kubectl get svc ingress-nginx-controller -n ingress-nginx -o jsonpath="{.status.loadBalancer.ingress[0].ip}"
+curl.exe -H "Host: todo-dev.example.com" "http://$IngressIp/"
+curl.exe -H "Host: todo-dev.example.com" "http://$IngressIp/todo"
+```
+
+For a portfolio demo without paid DNS, testing the external IP with the `Host` header is enough to prove that the AKS overlay exposes both the frontend and API through ingress.
+
 ## Common problems
 
 | Symptom | First thing to check |
@@ -191,8 +206,8 @@ kubectl get deploy,svc,hpa,ingress -n todo-app
 | ACR push is denied. | Confirm Terraform applied the `AcrPush` role assignment for the GitHub Actions release identity. |
 | `kubectl get nodes` returns `Forbidden` for your user object ID after `az aks get-credentials`. | The kubeconfig is present, but your Azure principal does not have Kubernetes API authorization. Assign `Azure Kubernetes Service RBAC Cluster Admin` at the AKS resource scope as shown in step 6, then rerun `az aks get-credentials --overwrite-existing`. |
 | Flux reconciles but pods cannot pull images. | Confirm AKS has `AcrPull` on the ACR and the overlay image names match the Terraform ACR login server. |
-| Ingress does not return traffic. | The repo currently reserves the ingress-nginx GitOps folder, but controller installation is a follow-up implementation step. Install or reconcile ingress-nginx before expecting public ingress traffic. |
-| The GitOps infrastructure folders look empty. | That is intentional for this milestone slice; they are placeholders for follow-up PRs that add ingress-nginx, cert-manager, External Secrets, policy, and monitoring controllers. |
+| Ingress does not return traffic. | Confirm `helmrelease/ingress-nginx` is ready, `svc/ingress-nginx-controller` has an external IP, and the Azure LoadBalancer health probe annotation is present on the controller service. |
+| The non-ingress GitOps infrastructure folders look empty. | That is intentional for this milestone slice; cert-manager, External Secrets, policy, and monitoring controllers are placeholders for follow-up PRs. |
 | Terraform warns that `azure_active_directory_role_based_access_control.managed` is deprecated. | This is expected with the pinned AzureRM 3.x provider. The field is still kept as `true` for managed Entra integration compatibility and should be removed when the Terraform stack is upgraded to AzureRM 4.x. |
 | `terraform destroy` cannot delete `rg-oktodo-dev` because `Microsoft.OperationsManagement/solutions/ContainerInsights(log-oktodo-dev)` still exists. | Import the existing Container Insights solution into Terraform state using the recovery commands in the teardown section, then rerun destroy. This usually means the environment was created before the solution was explicitly tracked in Terraform state. |
 

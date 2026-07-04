@@ -22,4 +22,4 @@ flux reconcile kustomization todo-app --namespace flux-system --with-source
 kubectl get ingress,deploy,hpa -n todo-app
 ```
 
-The app reconciliation points to `k8s/overlays/aks-dev`. Infrastructure directories are placeholders for milestone follow-up PRs that install ingress-nginx, cert-manager, External Secrets, policy, and monitoring controllers.
+The app reconciliation points to `k8s/overlays/aks-dev`. The infrastructure reconciliation installs ingress-nginx for public app ingress and keeps placeholders for cert-manager, External Secrets, policy, and monitoring controllers.
