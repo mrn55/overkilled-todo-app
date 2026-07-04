@@ -113,6 +113,7 @@ Provision Azure infrastructure and deploy the application through GitOps so the 
 - [x] Add `clusters/aks-dev` as the Flux bootstrap target.
 - [x] Add `gitops/apps/todo` to point Flux at the app overlay.
 - [x] Add `gitops/infrastructure` for ingress-nginx, cert-manager, external-secrets, policy, and monitoring placeholders.
+- [x] Install ingress-nginx through Flux-managed Helm resources for the AKS dev ingress class.
 - [x] Add reconciliation documentation and common Flux commands.
 - [x] Keep local and AKS deployment paths separate.
 

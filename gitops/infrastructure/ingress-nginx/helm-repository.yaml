@@ -1,0 +1,12 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: ingress-nginx
+  namespace: ingress-nginx
+  labels:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: overkilled-todo-platform
+    app.kubernetes.io/managed-by: flux
+spec:
+  interval: 1h
+  url: https://kubernetes.github.io/ingress-nginx
