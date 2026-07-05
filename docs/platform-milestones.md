@@ -127,12 +127,12 @@ Provision Azure infrastructure and deploy the application through GitOps so the 
 
 ### Acceptance criteria
 
-- [ ] `terraform validate` and dev `terraform plan` pass.
-- [ ] AKS and ACR can be created from repo instructions.
-- [ ] Images are built, tagged, and pushed to ACR with SBOM artifacts.
-- [ ] Flux reconciles the app from the GitOps folder into AKS.
-- [ ] The AKS overlay exposes frontend and API through ingress.
-- [ ] No production-like overlay depends on local image names or `imagePullPolicy: Never`.
+- [x] `terraform validate` and dev `terraform plan` pass.
+- [x] AKS and ACR can be created from repo instructions.
+- [x] Images are built, tagged, and pushed to ACR with SBOM artifacts.
+- [x] Flux reconciles the app from the GitOps folder into AKS.
+- [x] The AKS overlay exposes frontend and API through ingress.
+- [x] No production-like overlay depends on local image names or `imagePullPolicy: Never`.
 
 ### Demo moment
 
