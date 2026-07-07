@@ -6,7 +6,7 @@ use axum::{
     Json,
 };
 use serde::{Deserialize, Serialize};
-use sqlx::mysql::MySqlPool;
+use sqlx::mysql::{MySqlPool, MySqlPoolOptions};
 use std::{env, net::SocketAddr};
 
 #[derive(Debug, Deserialize)]
@@ -33,10 +33,9 @@ async fn main() {
         db_user, db_pass, db_host, db_port, db_name
     );
 
-    // let pool = MySqlPool::connect(database_url).await.expect("Failed to connect to database");
-    let pool = MySqlPool::connect(&database_url)
-    .await
-    .expect("Failed to connect to database");
+    let pool = MySqlPoolOptions::new()
+        .connect_lazy(&database_url)
+        .expect("Failed to create database pool");
 
     let app = Router::new()
         .route("/healthz", get(healthz))
