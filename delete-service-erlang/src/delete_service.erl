@@ -9,6 +9,8 @@ start() ->
 start(_StartType, _StartArgs) ->
     Dispatch = cowboy_router:compile([
         {'_', [
+            {"/healthz", health_handler, []},
+            {"/readyz", readiness_handler, []},
             {"/todo/:id", delete_handler, []},
             {"/", hello_handler, []}
         ]}

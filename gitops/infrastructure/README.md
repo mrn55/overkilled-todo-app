@@ -6,6 +6,6 @@ These directories hold the GitOps structure for cluster add-ons required by Mile
 - `cert-manager`: TLS certificate automation.
 - `external-secrets`: Azure Key Vault-backed secret delivery.
 - `policy`: admission policy controllers and policy bundles.
-- `monitoring`: observability stack or Azure managed monitoring integration.
+- `monitoring`: kube-prometheus-stack, app ServiceMonitors, alert rules, and Grafana dashboard ConfigMaps.
 
-The non-ingress directories are lightweight placeholders so Flux can reconcile the structure before each controller is installed in focused follow-up PRs.
+The cert-manager, external-secrets, and policy directories are lightweight placeholders so Flux can reconcile the structure before each controller is installed in focused follow-up PRs.

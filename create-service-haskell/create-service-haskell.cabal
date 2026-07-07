@@ -80,6 +80,7 @@ executable create-service-haskell
     build-depends: 
         base >=4.7 && <5,
         scotty,
+        http-types,
         mysql-simple,
         aeson,
         text

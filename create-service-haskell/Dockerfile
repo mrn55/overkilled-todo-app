@@ -4,7 +4,8 @@ WORKDIR /app
 
 RUN cabal update
 
-COPY . .
+COPY create-service-haskell.cabal LICENSE CHANGELOG.md ./
+COPY app ./app
 
 RUN cabal install --only-dependencies \
     && cabal build
@@ -20,6 +21,7 @@ LABEL org.opencontainers.image.title="Overkilled Todo Create Service" \
 # https://packages.debian.org/search?mode=path&suite=sid&section=all&arch=any&searchon=contents&keywords=libmariadb.so.3
 # https://packages.debian.org/search?searchon=contents&keywords=libpcre.so.3&mode=path&suite=unstable&arch=any
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
     libmariadb3 \
     libpcre3 \
     && rm -rf /var/lib/apt/lists/* \

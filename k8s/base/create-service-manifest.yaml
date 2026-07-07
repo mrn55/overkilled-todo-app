@@ -31,15 +31,18 @@ spec:
         - name: create-service
           image: create-service:latest
           ports:
-            - containerPort: 5001
+            - name: http
+              containerPort: 5001
           readinessProbe:
-            tcpSocket:
-              port: 5001
+            httpGet:
+              path: /readyz
+              port: http
             initialDelaySeconds: 5
             periodSeconds: 10
           livenessProbe:
-            tcpSocket:
-              port: 5001
+            httpGet:
+              path: /healthz
+              port: http
             initialDelaySeconds: 15
             periodSeconds: 20
           resources:
@@ -89,5 +92,6 @@ spec:
     app: create-service
   ports:
     - protocol: TCP
+      name: http
       port: 5001
       targetPort: 5001

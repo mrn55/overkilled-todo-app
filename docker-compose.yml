@@ -48,7 +48,7 @@ services:
     networks:
       - backend
     healthcheck:
-      test: ["CMD-SHELL", "timeout 3 bash -c '</dev/tcp/127.0.0.1/5001'"]
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:5001/readyz >/dev/null"]
       interval: 10s
       timeout: 5s
       retries: 12
@@ -65,7 +65,7 @@ services:
     networks:
       - backend
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:5002/todo"]
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:5002/readyz"]
       interval: 10s
       timeout: 5s
       retries: 12
@@ -82,7 +82,7 @@ services:
     networks:
       - backend
     healthcheck:
-      test: ["CMD-SHELL", "timeout 3 bash -c '</dev/tcp/127.0.0.1/5003'"]
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:5003/readyz >/dev/null"]
       interval: 10s
       timeout: 5s
       retries: 12
@@ -99,7 +99,7 @@ services:
     networks:
       - backend
     healthcheck:
-      test: ["CMD-SHELL", "nc -z 127.0.0.1 5004"]
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:5004/readyz"]
       interval: 10s
       timeout: 5s
       retries: 12
@@ -124,7 +124,7 @@ services:
       - frontend
       - backend
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/healthz"]
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/readyz"]
       interval: 10s
       timeout: 5s
       retries: 6

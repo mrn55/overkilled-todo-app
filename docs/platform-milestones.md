@@ -155,29 +155,29 @@ Make the platform operable with metrics, logs, dashboards, alerts, SLOs, runbook
 
 #### Health and metrics
 
-- [ ] Add `/healthz` and `/readyz` endpoints to each backend service.
-- [ ] Add `/metrics` to at least the gateway and one backend first, then expand incrementally.
-- [ ] Add Kubernetes probes that use health and readiness endpoints.
-- [ ] Add request IDs and structured logs at the gateway.
+- [x] Add `/healthz` and `/readyz` endpoints to each backend service.
+- [x] Add `/metrics` to at least the gateway and one backend first, then expand incrementally.
+- [x] Add Kubernetes probes that use health and readiness endpoints.
+- [x] Add request IDs and structured logs at the gateway.
 - [ ] Standardize log fields across services where practical.
 
 #### Monitoring stack
 
-- [ ] Move existing Prometheus experiments into `k8s/base/observability` or replace with a GitOps-managed monitoring stack.
-- [ ] Replace the current generic ServiceMonitor with app-specific ServiceMonitors.
-- [ ] Add PrometheusRule alerts for high 5xx rate, high latency, crash loops, low replica availability, and database unavailability.
-- [ ] Avoid exposing Prometheus through NodePort in AKS overlays.
-- [ ] Document Azure Managed Prometheus and Grafana options.
+- [x] Move existing Prometheus experiments into `k8s/base/observability` or replace with a GitOps-managed monitoring stack.
+- [x] Replace the current generic ServiceMonitor with app-specific ServiceMonitors.
+- [x] Add PrometheusRule alerts for high 5xx rate, high latency, crash loops, low replica availability, and database unavailability.
+- [x] Avoid exposing Prometheus through NodePort in AKS overlays.
+- [x] Document Azure Managed Prometheus and Grafana options.
 
 #### Dashboards, SLOs, and runbooks
 
-- [ ] Add `observability/dashboards/todo-overview.json`.
-- [ ] Add `observability/dashboards/service-golden-signals.json`.
-- [ ] Add `observability/slos/todo-api-slo.md`.
-- [ ] Add `observability/runbooks/high-error-rate.md`.
-- [ ] Add `observability/runbooks/database-unavailable.md`.
-- [ ] Add `observability/runbooks/pod-crashloop.md`.
-- [ ] Add `observability/load/k6-smoke.js` and `k6-load.js`.
+- [x] Add `observability/dashboards/todo-overview.json`.
+- [x] Add `observability/dashboards/service-golden-signals.json`.
+- [x] Add `observability/slos/todo-api-slo.md`.
+- [x] Add `observability/runbooks/high-error-rate.md`.
+- [x] Add `observability/runbooks/database-unavailable.md`.
+- [x] Add `observability/runbooks/pod-crashloop.md`.
+- [x] Add `observability/load/k6-smoke.js` and `k6-load.js`.
 
 #### Optional tracing
 

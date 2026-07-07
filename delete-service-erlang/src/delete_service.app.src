@@ -2,7 +2,7 @@
  [
   {description, "Delete Service"},
   {vsn, "0.1.0"},
-  {modules, [delete_service]},
+  {modules, [delete_service, delete_handler, health_handler, hello_handler, readiness_handler]},
   {registered, [delete_service]},
   {applications, [kernel, stdlib, cowboy, ranch, mysql]},
   {mod, {delete_service, []}}

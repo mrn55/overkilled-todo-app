@@ -1,6 +1,7 @@
 use axum::{
     extract::{Path, State},
-    routing::put,
+    http::StatusCode,
+    routing::{get, put},
     Router,
     Json,
 };
@@ -38,6 +39,8 @@ async fn main() {
     .expect("Failed to connect to database");
 
     let app = Router::new()
+        .route("/healthz", get(healthz))
+        .route("/readyz", get(readyz))
         .route("/todo/{id}", put(update_todo))
         .with_state(pool);
 
@@ -47,6 +50,23 @@ async fn main() {
     axum::serve(tokio::net::TcpListener::bind(addr).await.unwrap(), app.into_make_service())
         .await
         .unwrap();
+}
+
+async fn healthz() -> &'static str {
+    "ok\n"
+}
+
+async fn readyz(State(pool): State<MySqlPool>) -> (StatusCode, Json<serde_json::Value>) {
+    match sqlx::query("SELECT 1").execute(&pool).await {
+        Ok(_) => (StatusCode::OK, Json(serde_json::json!({ "status": "ready" }))),
+        Err(err) => {
+            eprintln!("Readiness database error: {:?}", err);
+            (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(serde_json::json!({ "status": "unready" })),
+            )
+        }
+    }
 }
 
 #[axum::debug_handler]
