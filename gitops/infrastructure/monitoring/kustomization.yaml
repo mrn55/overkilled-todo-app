@@ -5,6 +5,7 @@ resources:
   - namespace.yaml
   - helm-repository.yaml
   - helm-release.yaml
+  - service-monitors.yaml
 configMapGenerator:
   - name: grafana-dashboard-todo-overview
     files:

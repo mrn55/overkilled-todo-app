@@ -56,41 +56,6 @@ spec:
       enabled: true
     prometheus-node-exporter:
       enabled: true
-    additionalServiceMonitors:
-      - name: todo-api-gateway
-        namespaceSelector:
-          matchNames:
-            - todo-app
-        selector:
-          matchLabels:
-            app.kubernetes.io/name: api-gateway
-        endpoints:
-          - port: metrics
-            path: /metrics
-            interval: 30s
-      - name: todo-read-service
-        namespaceSelector:
-          matchNames:
-            - todo-app
-        selector:
-          matchLabels:
-            app.kubernetes.io/name: read-service
-        endpoints:
-          - port: http
-            path: /metrics
-            interval: 30s
-      - name: ingress-nginx
-        namespaceSelector:
-          matchNames:
-            - ingress-nginx
-        selector:
-          matchLabels:
-            app.kubernetes.io/name: ingress-nginx
-            app.kubernetes.io/component: controller
-        endpoints:
-          - port: metrics
-            path: /metrics
-            interval: 30s
     additionalPrometheusRulesMap:
       todo-platform:
         groups:

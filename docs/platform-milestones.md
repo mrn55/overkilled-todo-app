@@ -187,11 +187,11 @@ Make the platform operable with metrics, logs, dashboards, alerts, SLOs, runbook
 
 ### Acceptance criteria
 
-- [ ] Dashboards show request rate, error rate, latency, pod restarts, CPU, memory, and ingress status.
-- [ ] Alerts are tied to documented runbooks.
-- [ ] At least one SLO has an error budget explanation.
-- [ ] k6 can generate traffic for a live dashboard demo.
-- [ ] A failure scenario can be triggered and recovered using a runbook.
+- [x] Dashboards show request rate, error rate, latency, pod restarts, CPU, memory, and ingress status.
+- [x] Alerts are tied to documented runbooks.
+- [x] At least one SLO has an error budget explanation.
+- [x] k6 can generate traffic for a live dashboard demo.
+- [x] A failure scenario can be triggered and recovered using a runbook.
 
 ### Demo moment
 

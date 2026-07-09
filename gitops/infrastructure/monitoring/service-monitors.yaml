@@ -1,0 +1,57 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: todo-api-gateway
+  labels:
+    app.kubernetes.io/name: todo-api-gateway
+    app.kubernetes.io/part-of: overkilled-todo-platform
+spec:
+  namespaceSelector:
+    matchNames:
+      - todo-app
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: api-gateway
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: todo-read-service
+  labels:
+    app.kubernetes.io/name: todo-read-service
+    app.kubernetes.io/part-of: overkilled-todo-platform
+spec:
+  namespaceSelector:
+    matchNames:
+      - todo-app
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: read-service
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ingress-nginx
+  labels:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: overkilled-todo-platform
+spec:
+  namespaceSelector:
+    matchNames:
+      - ingress-nginx
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ingress-nginx
+      app.kubernetes.io/component: controller
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s

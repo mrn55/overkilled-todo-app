@@ -116,7 +116,7 @@
       "id": 4,
       "targets": [
         {
-          "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=\"todo-app\",container!=\"\"}[5m]))",
+          "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=\"todo-app\"}[5m]))",
           "legendFormat": "{{pod}}",
           "refId": "A"
         }
@@ -144,7 +144,7 @@
       "id": 5,
       "targets": [
         {
-          "expr": "sum by (pod) (container_memory_working_set_bytes{namespace=\"todo-app\",container!=\"\"})",
+          "expr": "sum by (pod) (container_memory_working_set_bytes{namespace=\"todo-app\"})",
           "legendFormat": "{{pod}}",
           "refId": "A"
         }

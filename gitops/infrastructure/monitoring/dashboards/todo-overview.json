@@ -8,8 +8,8 @@
       "id": 1,
       "targets": [
         {
-          "expr": "sum(rate(nginx_ingress_controller_requests{namespace=\"todo-app\"}[5m]))",
-          "legendFormat": "ingress requests/sec",
+          "expr": "sum(rate(todo_read_service_http_requests_total{route=\"/todo\"}[5m]))",
+          "legendFormat": "read /todo requests/sec",
           "refId": "A"
         }
       ],
@@ -23,8 +23,8 @@
       "id": 2,
       "targets": [
         {
-          "expr": "sum(rate(nginx_ingress_controller_requests{namespace=\"todo-app\",status=~\"5..\"}[5m])) / clamp_min(sum(rate(nginx_ingress_controller_requests{namespace=\"todo-app\"}[5m])), 0.001)",
-          "legendFormat": "5xx ratio",
+          "expr": "(sum(rate(todo_read_service_http_requests_total{route=\"/todo\",status=~\"5..\"}[5m])) or vector(0)) / clamp_min(sum(rate(todo_read_service_http_requests_total{route=\"/todo\"}[5m])), 0.001)",
+          "legendFormat": "read /todo 5xx ratio",
           "refId": "A"
         }
       ],
@@ -38,8 +38,8 @@
       "id": 3,
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(nginx_ingress_controller_request_duration_seconds_bucket{namespace=\"todo-app\"}[5m])))",
-          "legendFormat": "ingress p95",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(todo_read_service_http_request_duration_seconds_bucket{route=\"/todo\"}[5m])))",
+          "legendFormat": "read /todo p95",
           "refId": "A"
         }
       ],
@@ -68,12 +68,12 @@
       "id": 5,
       "targets": [
         {
-          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"todo-app\",container!=\"\"}[5m]))",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"todo-app\"}[5m]))",
           "legendFormat": "cpu cores",
           "refId": "A"
         },
         {
-          "expr": "sum(container_memory_working_set_bytes{namespace=\"todo-app\",container!=\"\"}) / 1024 / 1024 / 1024",
+          "expr": "sum(container_memory_working_set_bytes{namespace=\"todo-app\"}) / 1024 / 1024 / 1024",
           "legendFormat": "memory GiB",
           "refId": "B"
         }
