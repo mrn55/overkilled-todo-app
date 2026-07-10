@@ -10,19 +10,19 @@ resources:
 images:
 - name: create-service
   newName: oktododevacr.azurecr.io/overkilled-todo-app-create-service
-  newTag: sha-1772542b219a
+  newTag: sha-0139594cf762
 - name: delete-service
   newName: oktododevacr.azurecr.io/overkilled-todo-app-delete-service
-  newTag: sha-1772542b219a
+  newTag: sha-0139594cf762
 - name: read-service
   newName: oktododevacr.azurecr.io/overkilled-todo-app-read-service
-  newTag: sha-1772542b219a
+  newTag: sha-0139594cf762
 - name: todo-frontend
   newName: oktododevacr.azurecr.io/overkilled-todo-app-todo-frontend
-  newTag: sha-1772542b219a
+  newTag: sha-0139594cf762
 - name: update-service
   newName: oktododevacr.azurecr.io/overkilled-todo-app-update-service
-  newTag: sha-1772542b219a
+  newTag: sha-0139594cf762
 replicas:
 - count: 2
   name: api-gateway
