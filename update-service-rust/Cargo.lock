@@ -2108,6 +2108,7 @@ dependencies = [
  "axum",
  "mysql",
  "serde",
+ "serde_json",
  "sqlx",
  "tokio",
 ]

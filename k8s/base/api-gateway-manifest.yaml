@@ -29,17 +29,18 @@ spec:
         - name: api-gateway
           image: nginxinc/nginx-unprivileged:1.27.3-alpine
           ports:
-            - containerPort: 8080
+            - name: http
+              containerPort: 8080
           readinessProbe:
             httpGet:
-              path: /healthz
-              port: 8080
+              path: /readyz
+              port: http
             initialDelaySeconds: 5
             periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /healthz
-              port: 8080
+              port: http
             initialDelaySeconds: 15
             periodSeconds: 20
           resources:
@@ -57,6 +58,40 @@ spec:
           volumeMounts:
             - name: config-volume
               mountPath: /etc/nginx/conf.d
+        - name: nginx-exporter
+          image: nginx/nginx-prometheus-exporter:1.4.1
+          args:
+            - --nginx.scrape-uri=http://127.0.0.1:8080/nginx_status
+          ports:
+            - name: metrics
+              containerPort: 9113
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 101
+            runAsGroup: 101
+            capabilities:
+              drop:
+                - ALL
       volumes:
         - name: config-volume
           configMap:
@@ -73,6 +108,19 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
 data:
   default.conf: |
+    log_format todo_json escape=json
+        '{'
+        '"time":"$time_iso8601",'
+        '"request_id":"$request_id",'
+        '"remote_addr":"$remote_addr",'
+        '"method":"$request_method",'
+        '"uri":"$request_uri",'
+        '"status":$status,'
+        '"request_time":$request_time,'
+        '"upstream_response_time":"$upstream_response_time",'
+        '"upstream_addr":"$upstream_addr"'
+        '}';
+
     upstream create_service {
         server create-service:5001;
     }
@@ -100,6 +148,7 @@ data:
     server {
         listen 8080;
         server_name _;
+        access_log /dev/stdout todo_json;
 
         add_header Access-Control-Allow-Origin "http://localhost:3000" always;
         add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
@@ -111,6 +160,19 @@ data:
             access_log off;
             add_header Content-Type text/plain;
             return 200 "ok\n";
+        }
+
+        location = /readyz {
+            access_log off;
+            add_header Content-Type text/plain;
+            return 200 "ready\n";
+        }
+
+        location = /nginx_status {
+            access_log off;
+            stub_status;
+            allow 127.0.0.1;
+            deny all;
         }
 
         location /todo {
@@ -127,6 +189,7 @@ data:
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Request-ID $request_id;
             proxy_pass $todo_backend;
         }
     }
@@ -145,5 +208,10 @@ spec:
     app: api-gateway
   ports:
     - protocol: TCP
+      name: http
       port: 80
       targetPort: 8080
+    - protocol: TCP
+      name: metrics
+      port: 9113
+      targetPort: 9113

@@ -31,15 +31,18 @@ spec:
         - name: update-service
           image: update-service:latest
           ports:
-            - containerPort: 5003
+            - name: http
+              containerPort: 5003
           readinessProbe:
-            tcpSocket:
-              port: 5003
+            httpGet:
+              path: /readyz
+              port: http
             initialDelaySeconds: 5
             periodSeconds: 10
           livenessProbe:
-            tcpSocket:
-              port: 5003
+            httpGet:
+              path: /healthz
+              port: http
             initialDelaySeconds: 15
             periodSeconds: 20
           resources:
@@ -89,5 +92,6 @@ spec:
     app: update-service
   ports:
     - protocol: TCP
+      name: http
       port: 5003
       targetPort: 5003

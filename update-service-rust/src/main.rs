@@ -1,11 +1,12 @@
 use axum::{
     extract::{Path, State},
-    routing::put,
+    http::StatusCode,
+    routing::{get, put},
     Router,
     Json,
 };
 use serde::{Deserialize, Serialize};
-use sqlx::mysql::MySqlPool;
+use sqlx::mysql::{MySqlPool, MySqlPoolOptions};
 use std::{env, net::SocketAddr};
 
 #[derive(Debug, Deserialize)]
@@ -32,12 +33,13 @@ async fn main() {
         db_user, db_pass, db_host, db_port, db_name
     );
 
-    // let pool = MySqlPool::connect(database_url).await.expect("Failed to connect to database");
-    let pool = MySqlPool::connect(&database_url)
-    .await
-    .expect("Failed to connect to database");
+    let pool = MySqlPoolOptions::new()
+        .connect_lazy(&database_url)
+        .expect("Failed to create database pool");
 
     let app = Router::new()
+        .route("/healthz", get(healthz))
+        .route("/readyz", get(readyz))
         .route("/todo/{id}", put(update_todo))
         .with_state(pool);
 
@@ -47,6 +49,23 @@ async fn main() {
     axum::serve(tokio::net::TcpListener::bind(addr).await.unwrap(), app.into_make_service())
         .await
         .unwrap();
+}
+
+async fn healthz() -> &'static str {
+    "ok\n"
+}
+
+async fn readyz(State(pool): State<MySqlPool>) -> (StatusCode, Json<serde_json::Value>) {
+    match sqlx::query("SELECT 1").execute(&pool).await {
+        Ok(_) => (StatusCode::OK, Json(serde_json::json!({ "status": "ready" }))),
+        Err(err) => {
+            eprintln!("Readiness database error: {:?}", err);
+            (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(serde_json::json!({ "status": "unready" })),
+            )
+        }
+    }
 }
 
 #[axum::debug_handler]

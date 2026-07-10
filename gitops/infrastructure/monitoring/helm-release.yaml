@@ -1,0 +1,108 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kube-prometheus-stack
+  labels:
+    app.kubernetes.io/name: kube-prometheus-stack
+    app.kubernetes.io/part-of: overkilled-todo-platform
+    app.kubernetes.io/managed-by: flux
+spec:
+  interval: 30m
+  timeout: 10m
+  chart:
+    spec:
+      chart: kube-prometheus-stack
+      version: "70.4.2"
+      sourceRef:
+        kind: HelmRepository
+        name: prometheus-community
+        namespace: monitoring
+      interval: 12h
+  install:
+    createNamespace: true
+    crds: CreateReplace
+    remediation:
+      retries: 3
+  upgrade:
+    crds: CreateReplace
+    remediation:
+      retries: 3
+  values:
+    fullnameOverride: monitoring
+    alertmanager:
+      enabled: true
+    grafana:
+      enabled: true
+      adminPassword: "prom-operator"
+      defaultDashboardsTimezone: browser
+      sidecar:
+        dashboards:
+          enabled: true
+          label: grafana_dashboard
+          searchNamespace: monitoring
+    prometheus:
+      prometheusSpec:
+        serviceMonitorSelectorNilUsesHelmValues: false
+        ruleSelectorNilUsesHelmValues: false
+        retention: 7d
+        resources:
+          requests:
+            cpu: 150m
+            memory: 512Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
+    kube-state-metrics:
+      enabled: true
+    prometheus-node-exporter:
+      enabled: true
+    additionalPrometheusRulesMap:
+      todo-platform:
+        groups:
+          - name: todo-platform.rules
+            rules:
+              - alert: TodoHighIngress5xxRate
+                expr: sum(rate(nginx_ingress_controller_requests{namespace="todo-app",status=~"5.."}[5m])) > 0
+                for: 5m
+                labels:
+                  severity: warning
+                  runbook: high-error-rate
+                annotations:
+                  summary: "TODO ingress is returning 5xx responses"
+                  runbook_url: "observability/runbooks/high-error-rate.md"
+              - alert: TodoHighIngressLatency
+                expr: histogram_quantile(0.95, sum by (le) (rate(nginx_ingress_controller_request_duration_seconds_bucket{namespace="todo-app"}[5m]))) > 1
+                for: 10m
+                labels:
+                  severity: warning
+                  runbook: high-error-rate
+                annotations:
+                  summary: "TODO ingress p95 latency is above 1 second"
+                  runbook_url: "observability/runbooks/high-error-rate.md"
+              - alert: TodoPodCrashLooping
+                expr: max_over_time(kube_pod_container_status_waiting_reason{namespace="todo-app",reason="CrashLoopBackOff"}[5m]) > 0
+                for: 5m
+                labels:
+                  severity: warning
+                  runbook: pod-crashloop
+                annotations:
+                  summary: "A TODO workload container is crash looping"
+                  runbook_url: "observability/runbooks/pod-crashloop.md"
+              - alert: TodoLowReplicaAvailability
+                expr: kube_deployment_spec_replicas{namespace="todo-app"} - kube_deployment_status_replicas_available{namespace="todo-app"} > 0
+                for: 10m
+                labels:
+                  severity: warning
+                  runbook: pod-crashloop
+                annotations:
+                  summary: "A TODO deployment has fewer available replicas than desired"
+                  runbook_url: "observability/runbooks/pod-crashloop.md"
+              - alert: TodoDatabaseUnavailable
+                expr: kube_deployment_status_replicas_available{namespace="todo-app",deployment="mariadb"} < 1
+                for: 5m
+                labels:
+                  severity: critical
+                  runbook: database-unavailable
+                annotations:
+                  summary: "MariaDB has no available replicas"
+                  runbook_url: "observability/runbooks/database-unavailable.md"
