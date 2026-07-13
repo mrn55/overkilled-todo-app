@@ -9,7 +9,7 @@ This is the step-by-step Milestone 2 path after the local Minikube flow works. T
 | Azure infrastructure | `infra/terraform/` | Creates the resource group, virtual network, AKS cluster, ACR, Log Analytics, Key Vault, managed identities, and the GitHub Actions release identity. |
 | Image release | `.github/workflows/acr-image-release.yaml` | Builds the five app images, creates SBOMs, pushes to ACR, and updates AKS Kustomize image tags. Vulnerability scanning is intentionally deferred until a maintained scanner action is selected. |
 | AKS app manifests | `k8s/overlays/aks-dev` | Renders the production-shaped dev deployment that points at ACR images and AKS ingress settings. |
-| GitOps cluster state | `clusters/aks-dev` and `gitops/` | Tells Flux what to reconcile into the dev AKS cluster, including ingress-nginx infrastructure and the app overlay. |
+| GitOps cluster state | `clusters/aks-dev` and `gitops/` | Tells Flux what to reconcile into the dev AKS cluster, including ingress-nginx, External Secrets Operator infrastructure, and the app overlay. |
 
 ## Before you start
 
@@ -147,7 +147,38 @@ Checkpoint:
 kubectl get nodes
 ```
 
-## 7. Bootstrap Flux to the dev cluster
+
+## 7. Prepare database secrets in Key Vault
+
+The base manifests intentionally do not commit `db-secret`. AKS environments use External Secrets Operator to create the same Kubernetes Secret name expected by MariaDB and the CRUD services.
+
+Get the Key Vault name and External Secrets managed identity client ID from the existing Terraform outputs:
+
+```powershell
+$KeyVaultName = terraform -chdir=infra/terraform output -raw key_vault_name
+$ExternalSecretsClientId = terraform -chdir=infra/terraform output -raw external_secrets_identity_client_id
+```
+
+Use `$ExternalSecretsClientId` as the value for the External Secrets workload identity annotations in `gitops/infrastructure/external-secrets/helm-release.yaml` and the AKS overlay `external-secrets` ServiceAccount. Use `$KeyVaultName` in the AKS overlay `SecretStore` `vaultUrl` value as `https://$KeyVaultName.vault.azure.net`.
+
+Create the four Key Vault secrets consumed by `ExternalSecret/db-secret`:
+
+```powershell
+az keyvault secret set --vault-name $KeyVaultName --name MYSQL_ROOT_PASSWORD --value '<root-password>'
+az keyvault secret set --vault-name $KeyVaultName --name MYSQL_USER --value 'todo_user'
+az keyvault secret set --vault-name $KeyVaultName --name MYSQL_PASSWORD --value '<app-password>'
+az keyvault secret set --vault-name $KeyVaultName --name MYSQL_DATABASE --value 'todo_db'
+```
+
+Checkpoint after Flux reconciles External Secrets Operator and the app overlay:
+
+```powershell
+kubectl get externalsecret,secretstore,secret -n todo-app
+```
+
+`externalsecret/db-secret` should report Ready, and `secret/db-secret` should exist in `todo-app`.
+
+## 8. Bootstrap Flux to the dev cluster
 
 Export a GitHub token before bootstrapping so Flux can authenticate non-interactively from PowerShell. The `--private=false` flag matches this repository's public visibility; use `--private=true` for a private fork.
 
@@ -176,7 +207,7 @@ kubectl get pods,svc -n ingress-nginx
 kubectl get deploy,svc,hpa,ingress -n todo-app
 ```
 
-## 8. Reconcile after image releases
+## 9. Reconcile after image releases
 
 If you need Flux to pick up a new image-tag commit immediately:
 
@@ -185,7 +216,7 @@ flux reconcile kustomization todo-app --namespace flux-system --with-source
 kubectl get deploy,svc,hpa,ingress -n todo-app
 ```
 
-## 9. Verify public ingress
+## 10. Verify public ingress
 
 The AKS overlay routes frontend traffic from `/` to `front-end` and API traffic from `/todo` to `api-gateway`. The ingress-nginx controller is reconciled from `gitops/infrastructure/ingress-nginx` and publishes an Azure LoadBalancer service.
 
@@ -207,7 +238,7 @@ For a portfolio demo without paid DNS, testing the external IP with the `Host` h
 | `kubectl get nodes` returns `Forbidden` for your user object ID after `az aks get-credentials`. | The kubeconfig is present, but your Azure principal does not have Kubernetes API authorization. Assign `Azure Kubernetes Service RBAC Cluster Admin` at the AKS resource scope as shown in step 6, then rerun `az aks get-credentials --overwrite-existing`. |
 | Flux reconciles but pods cannot pull images. | Confirm AKS has `AcrPull` on the ACR and the overlay image names match the Terraform ACR login server. |
 | Ingress does not return traffic. | Confirm `helmrelease/ingress-nginx` is ready, `svc/ingress-nginx-controller` has an external IP, and the Azure LoadBalancer health probe annotation is present on the controller service. |
-| Some GitOps infrastructure folders look empty. | That is intentional for this milestone slice. Monitoring and ingress-nginx are active GitOps-managed add-ons; cert-manager, External Secrets, and policy remain placeholders for follow-up PRs. |
+| External Secrets does not create `secret/db-secret`. | Confirm the four Key Vault secrets exist, the workload identity client ID annotations match `terraform output -raw external_secrets_identity_client_id`, the SecretStore vault URL uses `terraform output -raw key_vault_name`, and `kubectl get externalsecret,secretstore,secret -n todo-app` shows the failing condition. |
 | Terraform warns that `azure_active_directory_role_based_access_control.managed` is deprecated. | This is expected with the pinned AzureRM 3.x provider. The field is still kept as `true` for managed Entra integration compatibility and should be removed when the Terraform stack is upgraded to AzureRM 4.x. |
 | `terraform destroy` cannot delete `rg-oktodo-dev` because `Microsoft.OperationsManagement/solutions/ContainerInsights(log-oktodo-dev)` still exists. | Import the existing Container Insights solution into Terraform state using the recovery commands in the teardown section, then rerun destroy. This usually means the environment was created before the solution was explicitly tracked in Terraform state. |
 
