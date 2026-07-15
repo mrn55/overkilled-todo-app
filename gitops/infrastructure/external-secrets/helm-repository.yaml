@@ -1,0 +1,12 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: external-secrets
+  namespace: external-secrets
+  labels:
+    app.kubernetes.io/name: external-secrets
+    app.kubernetes.io/part-of: overkilled-todo-platform
+    app.kubernetes.io/managed-by: flux
+spec:
+  interval: 1h
+  url: https://charts.external-secrets.io

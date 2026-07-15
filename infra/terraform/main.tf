@@ -100,6 +100,15 @@ resource "azurerm_user_assigned_identity" "github_actions_release" {
   tags                = local.common_tags
 }
 
+resource "azurerm_federated_identity_credential" "external_secrets" {
+  name                = "fic-${local.resource_prefix}-external-secrets"
+  resource_group_name = azurerm_resource_group.platform.name
+  parent_id           = azurerm_user_assigned_identity.external_secrets.id
+  audience            = ["api://AzureADTokenExchange"]
+  issuer              = azurerm_kubernetes_cluster.platform.oidc_issuer_url
+  subject             = "system:serviceaccount:todo-app:external-secrets"
+}
+
 resource "azurerm_federated_identity_credential" "github_actions_release" {
   count               = var.github_repository == "" ? 0 : 1
   name                = "fic-${local.resource_prefix}-github-actions-release"

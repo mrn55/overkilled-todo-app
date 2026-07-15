@@ -44,3 +44,6 @@ _build/
 Thumbs.db
 .vscode/
 .idea/
+
+# Local Kubernetes secrets (copy examples instead of committing real values)
+k8s/overlays/local/db-secret.yaml

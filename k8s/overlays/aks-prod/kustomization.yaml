@@ -7,6 +7,9 @@ commonAnnotations:
 resources:
   - ../../base
   - hpa.yaml
+  - external-secrets-service-account.yaml
+  - external-secret-store.yaml
+  - external-secret.yaml
 images:
   - name: create-service
     newName: oktodoprodacr.azurecr.io/overkilled-todo-app-create-service

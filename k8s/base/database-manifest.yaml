@@ -15,22 +15,6 @@ spec:
     requests:
       storage: 1Gi
 ---
-apiVersion: v1
-kind: Secret
-metadata:
-  name: db-secret
-  labels:
-    app.kubernetes.io/name: mariadb
-    app.kubernetes.io/part-of: overkilled-todo
-    app.kubernetes.io/component: database
-    app.kubernetes.io/managed-by: kustomize
-type: Opaque
-data:
-  MYSQL_ROOT_PASSWORD: c3VwZXJzZWN1cmVwYXNzd29yZCE=
-  MYSQL_USER: dG9kb191c2Vy
-  MYSQL_PASSWORD: dG9kb19wYXNzd29yZA==
-  MYSQL_DATABASE: dG9kb19kYg==
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:

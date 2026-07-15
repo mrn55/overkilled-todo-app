@@ -91,3 +91,12 @@ patches:
             containers:
               - name: update-service
                 imagePullPolicy: Never
+secretGenerator:
+  - name: db-secret
+    literals:
+      - MYSQL_ROOT_PASSWORD=local-root-password
+      - MYSQL_USER=todo_user
+      - MYSQL_PASSWORD=local-todo-password
+      - MYSQL_DATABASE=todo_db
+generatorOptions:
+  disableNameSuffixHash: true
