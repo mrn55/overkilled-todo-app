@@ -161,22 +161,31 @@ $ExternalSecretsClientId = terraform -chdir=infra/terraform output -raw external
 
 Use `$ExternalSecretsClientId` as the value for the External Secrets workload identity annotations in `gitops/infrastructure/external-secrets/helm-release.yaml` and the AKS overlay `external-secrets` ServiceAccount. Use `$KeyVaultName` in the AKS overlay `SecretStore` `vaultUrl` value as `https://$KeyVaultName.vault.azure.net`.
 
-Create the four Key Vault secrets consumed by `ExternalSecret/db-secret`:
+Create the four Key Vault secrets consumed by `ExternalSecret/db-secret`.
+Key Vault secret names cannot contain underscores, so the Key Vault object names
+use hyphens while the Kubernetes Secret keys remain the `MYSQL_*` names expected
+by the workloads.
 
 ```powershell
-az keyvault secret set --vault-name $KeyVaultName --name MYSQL_ROOT_PASSWORD --value '<root-password>'
-az keyvault secret set --vault-name $KeyVaultName --name MYSQL_USER --value 'todo_user'
-az keyvault secret set --vault-name $KeyVaultName --name MYSQL_PASSWORD --value '<app-password>'
-az keyvault secret set --vault-name $KeyVaultName --name MYSQL_DATABASE --value 'todo_db'
+$ResourceGroupName = terraform -chdir=infra/terraform output -raw resource_group_name
+$KeyVaultId = az keyvault show --resource-group $ResourceGroupName --name $KeyVaultName --query id -o tsv
+$SignedInUserObjectId = az ad signed-in-user show --query id -o tsv
+
+az role assignment create --assignee $SignedInUserObjectId --role "Key Vault Secrets Officer" --scope $KeyVaultId
+
+az keyvault secret set --vault-name $KeyVaultName --name MYSQL-ROOT-PASSWORD --value '<root-password>'
+az keyvault secret set --vault-name $KeyVaultName --name MYSQL-USER --value 'todo_user'
+az keyvault secret set --vault-name $KeyVaultName --name MYSQL-PASSWORD --value '<app-password>'
+az keyvault secret set --vault-name $KeyVaultName --name MYSQL-DATABASE --value 'todo_db'
 ```
 
-Checkpoint after Flux reconciles External Secrets Operator and the app overlay:
+If the role assignment fails, your Azure account does not have permission to grant
+Key Vault data-plane roles. Ask a subscription or resource-group owner to grant
+your user `Key Vault Secrets Officer` on the Key Vault, then retry the secret
+commands after RBAC propagation.
 
-```powershell
-kubectl get externalsecret,secretstore,secret -n todo-app
-```
-
-`externalsecret/db-secret` should report Ready, and `secret/db-secret` should exist in `todo-app`.
+Do not check `externalsecret` resources yet. Those custom resources do not exist
+until Flux installs External Secrets Operator in the next step.
 
 ## 8. Bootstrap Flux to the dev cluster
 
@@ -204,8 +213,15 @@ flux get sources git -A
 flux get kustomizations -A
 kubectl get helmrepository,helmrelease -n ingress-nginx
 kubectl get pods,svc -n ingress-nginx
+kubectl get helmrepository,helmrelease -n external-secrets
+kubectl get pods -n external-secrets
 kubectl get deploy,svc,hpa,ingress -n todo-app
+kubectl get externalsecret,secretstore,secret -n todo-app
 ```
+
+`helmrelease/external-secrets` should be ready before the `externalsecret` check
+works. After the app overlay reconciles, `externalsecret/db-secret` should report
+Ready, and `secret/db-secret` should exist in `todo-app`.
 
 ## 9. Reconcile after image releases
 

@@ -1,0 +1,19 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: monitoring-service-monitors
+  namespace: flux-system
+  labels:
+    app.kubernetes.io/name: monitoring-service-monitors
+    app.kubernetes.io/part-of: overkilled-todo-platform
+    app.kubernetes.io/managed-by: flux
+spec:
+  interval: 5m
+  retryInterval: 1m
+  path: ./gitops/infrastructure/monitoring/service-monitors
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  timeout: 3m
+  wait: true
