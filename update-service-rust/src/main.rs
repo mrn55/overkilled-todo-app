@@ -2,8 +2,7 @@ use axum::{
     extract::{Path, State},
     http::StatusCode,
     routing::{get, put},
-    Router,
-    Json,
+    Json, Router,
 };
 use serde::{Deserialize, Serialize};
 use sqlx::mysql::{MySqlPool, MySqlPoolOptions};
@@ -46,9 +45,12 @@ async fn main() {
     let addr = SocketAddr::from(([0, 0, 0, 0], 5003));
     println!("Update service running on {}", addr);
 
-    axum::serve(tokio::net::TcpListener::bind(addr).await.unwrap(), app.into_make_service())
-        .await
-        .unwrap();
+    axum::serve(
+        tokio::net::TcpListener::bind(addr).await.unwrap(),
+        app.into_make_service(),
+    )
+    .await
+    .unwrap();
 }
 
 async fn healthz() -> &'static str {
@@ -57,7 +59,10 @@ async fn healthz() -> &'static str {
 
 async fn readyz(State(pool): State<MySqlPool>) -> (StatusCode, Json<serde_json::Value>) {
     match sqlx::query("SELECT 1").execute(&pool).await {
-        Ok(_) => (StatusCode::OK, Json(serde_json::json!({ "status": "ready" }))),
+        Ok(_) => (
+            StatusCode::OK,
+            Json(serde_json::json!({ "status": "ready" })),
+        ),
         Err(err) => {
             eprintln!("Readiness database error: {:?}", err);
             (
@@ -80,19 +85,19 @@ async fn update_todo(
         .execute(&pool)
         .await;
 
-        match result {
-            Ok(query_result) if query_result.rows_affected() > 0 => {
-                // Construct the updated todo response directly
-                let updated_todo = Todo {
-                    id,
-                    title: payload.title,
-                };
-                Ok(Json(updated_todo))
-            }
-            Ok(_) => Err(Json("Todo not found".to_string())), // No rows affected, meaning ID was invalid
-            Err(err) => {
-                eprintln!("Database error: {:?}", err);
-                Err(Json("Failed to update todo".to_string()))
-            }
+    match result {
+        Ok(query_result) if query_result.rows_affected() > 0 => {
+            // Construct the updated todo response directly
+            let updated_todo = Todo {
+                id,
+                title: payload.title,
+            };
+            Ok(Json(updated_todo))
         }
+        Ok(_) => Err(Json("Todo not found".to_string())), // No rows affected, meaning ID was invalid
+        Err(err) => {
+            eprintln!("Database error: {:?}", err);
+            Err(Json("Failed to update todo".to_string()))
+        }
+    }
 }

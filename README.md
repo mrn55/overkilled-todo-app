@@ -55,13 +55,14 @@ docker compose --profile backend-ports up --build -d
 
 Useful checks:
 
-```sh
+```powershell
 docker compose ps
+./tools/Test-LocalDemo.ps1
 docker compose logs -f api-gateway
 docker compose down --remove-orphans
 ```
 
-The frontend resolves the API base URL from `window.__TODO_CONFIG__.apiBaseUrl`, `VITE_API_BASE_URL`, or local-development defaults. When served on `localhost:3000` by Minikube port-forwarding, it falls back to `http://localhost:8081/todo`.
+The smoke test verifies the frontend and a complete create/read/update/delete cycle through the gateway. Docker Compose mounts a runtime frontend configuration that targets `http://localhost/todo`. When served on `localhost:3000` by Minikube port-forwarding without that Compose mount, the frontend falls back to `http://localhost:8081/todo`.
 
 ## Quickstart: local Kubernetes
 

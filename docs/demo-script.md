@@ -33,6 +33,7 @@ Call out:
 cp .env.example .env
 docker compose up --build -d
 docker compose ps
+./tools/Test-LocalDemo.ps1
 ```
 
 Open:
@@ -42,6 +43,7 @@ Open:
 
 Demo moment:
 
+- Show the smoke test passing so the audience sees repeatable evidence before the UI walkthrough.
 - Create, update, read, and delete one TODO item.
 - Keep this section short; the point is not product depth, it is proving the app is real before showing the platform around it.
 

@@ -136,6 +136,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:8080"
+    volumes:
+      - ./todo-frontend/config/compose.js:/usr/share/nginx/html/config.js:ro
     depends_on:
       api-gateway:
         condition: service_healthy
