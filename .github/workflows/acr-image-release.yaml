@@ -15,9 +15,6 @@ on:
         description: Optional image tag. Defaults to git SHA.
         required: false
         type: string
-  push:
-    branches:
-      - master
     paths:
       - create-service-haskell/**
       - delete-service-erlang/**
